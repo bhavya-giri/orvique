@@ -114,18 +114,23 @@
     z-index: 3;
     pointer-events: none;
   }
-  /* Full-viewport product images — open image revealed via clip-path, no translateY on open */
+  /* Full-viewport product images */
   .hero-img {
     position: absolute; inset: 0;
     width: 100%; height: 100%;
     object-fit: cover;
     object-position: center 55%;
-    will-change: transform, clip-path;
+    will-change: transform;
     z-index: 2;
   }
-  .hero-img-open {
+  /* Wrapper carries the clip-path so the cut is always a clean horizontal line,
+     even when the inner image is scaled or rotated */
+  .hero-img-open-wrap {
+    position: absolute; inset: 0;
     z-index: 1;
-    clip-path: inset(100% 0 0 0); /* hidden initially; JS reveals from bottom upward */
+    clip-path: inset(100% 0 0 0); /* fully hidden until JS starts revealing */
+  }
+  .hero-img-open {
     transform-origin: center 60%;
   }
   .hero .copy {
@@ -586,7 +591,9 @@
 <header class="hero" id="hero">
   <div class="stick">
     <img class="hero-img hero-img-closed" id="imgClosed" src="assets/toilet-closed.png" alt="Orvique smart toilet, lid closed" />
-    <img class="hero-img hero-img-open"   id="imgOpen"   src="assets/toilet-open.png"   alt="Orvique smart toilet, lid open with ambient light" />
+    <div class="hero-img-open-wrap" id="imgOpenWrap">
+      <img class="hero-img hero-img-open" id="imgOpen" src="assets/toilet-open.png" alt="Orvique smart toilet, lid open with ambient light" />
+    </div>
     <div class="vignette"></div>
     <div class="glow" id="heroGlow"></div>
     <div class="copy">
@@ -829,6 +836,7 @@
   // ----------- Scroll-driven hero: vertical image reveal (Apple-style) -----------
   const hero        = document.getElementById('hero');
   const imgClosed   = document.getElementById('imgClosed');
+  const imgOpenWrap = document.getElementById('imgOpenWrap');
   const imgOpen     = document.getElementById('imgOpen');
   const heroCopy    = document.getElementById('heroCopy');
   const heroLead    = document.getElementById('heroLead');
@@ -857,21 +865,15 @@
     const lidT = clamp((progress - 0.04) / 0.60, 0, 1);
     const lidEased = easeOut(lidT);
 
-    // Closed: slides up + zooms out slightly (1:1 linear translateY)
-    const closedScale = lerp(1.0, 0.88, lidEased);
-    imgClosed.style.transform = `translateY(${-lidT * 100}%) scale(${closedScale})`;
+    // Closed: slides up (pure linear translateY — no scale, so it never shrinks below viewport)
+    imgClosed.style.transform = `translateY(${-lidT * 100}%)`;
 
-    // Open: clip-path reveals from bottom upward (no translateY = no black void)
-    // Scale + rotate are eased for cinematic feel
-    const openClip   = (1 - lidT) * 100;
-    const openScale  = lerp(1.18, 1.0, lidEased);
-    const openRotate = lerp(-4, 0, lidEased);
-    imgOpen.style.clipPath  = `inset(${openClip}% 0 0 0)`;
+    // Open: wrapper carries a clean horizontal clip-path; inner image gets scale + rotate
+    // Wrapper clip keeps the reveal edge perfectly horizontal regardless of rotation below
+    imgOpenWrap.style.clipPath = `inset(${(1 - lidT) * 100}% 0 0 0)`;
+    const openScale  = lerp(1.12, 1.0, lidEased);
+    const openRotate = lerp(-3, 0, lidEased);
     imgOpen.style.transform = `scale(${openScale}) rotate(${openRotate}deg)`;
-    // Images stay fully opaque — no exit fade. The dark next section naturally
-    // slides in below; fading to black only creates a dead blank zone.
-    imgClosed.style.opacity = '1';
-    imgOpen.style.opacity   = '1';
 
     // Bowl glow tracks the open image rising
     heroGlow.style.opacity = String(clamp(lidT * 1.1, 0, 0.88));
