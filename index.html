@@ -123,7 +123,11 @@
     will-change: transform;
     z-index: 2;
   }
-  .hero-img-open { z-index: 1; transform: translateY(100%); }
+  .hero-img-open {
+    z-index: 1;
+    transform: translateY(100%);
+    transform-origin: center 68%; /* rotation pivots near the base, like a hinge */
+  }
   .hero .copy {
     position: absolute;
     top: 11vh; left: 0; right: 0;
@@ -851,8 +855,16 @@
     // ── IMAGE REVEAL: linear 1:1 with scroll — 160vh total track ──
     // Wipe window: 0.04 → 0.64 (60% of track = 96vh)
     const lidT = clamp((progress - 0.04) / 0.60, 0, 1);
-    imgClosed.style.transform = `translateY(${-lidT * 100}%)`;
-    imgOpen.style.transform   = `translateY(${(1 - lidT) * 100}%)`;
+    const lidEased = easeOut(lidT);
+
+    // Closed: slides up + zooms out slightly
+    const closedScale = lerp(1.0, 0.88, lidEased);
+    imgClosed.style.transform = `translateY(${-lidT * 100}%) scale(${closedScale})`;
+
+    // Open: rises from below + zooms in (1.22→1.0) + rotates straight (−5°→0°)
+    const openScale  = lerp(1.22, 1.0, lidEased);
+    const openRotate = lerp(-5, 0, lidEased);
+    imgOpen.style.transform = `translateY(${(1 - lidT) * 100}%) scale(${openScale}) rotate(${openRotate}deg)`;
     // Images stay fully opaque — no exit fade. The dark next section naturally
     // slides in below; fading to black only creates a dead blank zone.
     imgClosed.style.opacity = '1';
