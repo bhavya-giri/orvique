@@ -89,7 +89,7 @@
   /* ---------- HERO with sticky scroll-driven lid open ---------- */
   .hero {
     position: relative;
-    height: 320vh; /* extended scroll track — Apple-style cinematic pacing */
+    height: 260vh; /* 160vh scroll track — enough for the wipe + lead text, no dead zone */
     background: #000;
   }
   .hero .stick {
@@ -847,40 +847,33 @@
     const total    = hero.offsetHeight - window.innerHeight; // 320vh - 100vh = 220vh
     const progress = clamp(-rect.top / total, 0, 1);
 
-    // ── IMAGE REVEAL: linear (1:1 with scroll) — user's hand IS the easing ──
-    // Closed slides up and off; open rises from below.
-    // Window: progress 0.06 → 0.66 (60% of scroll track ≈ 132vh)
-    const lidT = clamp((progress - 0.06) / 0.60, 0, 1);
+    // ── IMAGE REVEAL: linear 1:1 with scroll — 160vh total track ──
+    // Wipe window: 0.04 → 0.64 (60% of track = 96vh)
+    const lidT = clamp((progress - 0.04) / 0.60, 0, 1);
     imgClosed.style.transform = `translateY(${-lidT * 100}%)`;
     imgOpen.style.transform   = `translateY(${(1 - lidT) * 100}%)`;
+    // Images stay fully opaque — no exit fade. The dark next section naturally
+    // slides in below; fading to black only creates a dead blank zone.
+    imgClosed.style.opacity = '1';
+    imgOpen.style.opacity   = '1';
 
-    // Bowl glow tracks the open image rising, peaks when it's centered
-    heroGlow.style.opacity = String(clamp(lidT * 1.15, 0, 0.9));
+    // Bowl glow tracks the open image rising
+    heroGlow.style.opacity = String(clamp(lidT * 1.1, 0, 0.88));
     heroGlow.style.top     = `${lerp(76, 64, lidT)}%`;
 
-    // ── HEADLINE: fades up and out as image reveal begins (0.06 → 0.40) ──
-    const copyT = clamp((progress - 0.06) / 0.34, 0, 1);
+    // ── HEADLINE: fades up and out (0.04 → 0.36) ──
+    const copyT = clamp((progress - 0.04) / 0.32, 0, 1);
     heroCopy.style.opacity   = String(1 - easeOut(copyT));
     heroCopy.style.transform = `translateY(${-easeOut(copyT) * 28}px)`;
 
-    // ── SCROLL HINT: fades as soon as user starts scrolling ──
-    if (scrollHint) scrollHint.style.opacity = String(clamp(1 - progress / 0.06, 0, 1));
+    // ── SCROLL HINT: fades on first scroll ──
+    if (scrollHint) scrollHint.style.opacity = String(clamp(1 - progress / 0.05, 0, 1));
 
-    // ── LEAD TEXT: rises in over open toilet (0.60 → 0.80) ──
-    const leadT = clamp((progress - 0.60) / 0.20, 0, 1);
+    // ── LEAD TEXT: rises in over open toilet (0.64 → 0.84) ──
+    const leadT    = clamp((progress - 0.64) / 0.20, 0, 1);
     const leadEased = easeOut(leadT);
     heroLead.style.opacity   = String(leadEased);
     heroLead.style.transform = `translateY(${(1 - leadEased) * 40}px)`;
-
-    // ── EXIT FADE: hero dissolves to black → clean handoff (0.84 → 1.0) ──
-    const exitT = clamp((progress - 0.84) / 0.16, 0, 1);
-    const exitEased = easeOut(exitT);
-    imgClosed.style.opacity  = String(1 - exitEased);
-    imgOpen.style.opacity    = String(1 - exitEased);
-    if (exitT > 0) {
-      heroGlow.style.opacity   = String(clamp(lidT * 1.15, 0, 0.9) * (1 - exitEased));
-      heroLead.style.opacity   = String(leadEased * (1 - exitEased));
-    }
 
     // ── NAV: hidden on load, slides in after first scroll ──
     topNav.classList.toggle('revealed', window.scrollY > 80);
