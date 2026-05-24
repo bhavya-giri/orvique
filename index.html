@@ -1,936 +1,757 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
 <title>Orvique — Intelligent Comfort</title>
-<link rel="preconnect" href="https://fonts.googleapis.com" />
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet"/>
 <style>
-  :root {
-    --bg: #000;
-    --bg-light: #f5f5f7;
-    --ink: #f5f5f7;
-    --ink-dim: #a1a1a6;
-    --ink-dark: #1d1d1f;
-    --ink-dark-dim: #6e6e73;
-    --gold: #d4a85a;
-    --gold-2: #f3d28a;
-    --blue: #2997ff;
-    --max: 1200px;
-    --ease: cubic-bezier(.22,.61,.36,1);
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  html, body {
-    background: var(--bg);
-    color: var(--ink);
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Helvetica, Arial, sans-serif;
-    font-weight: 400;
-    -webkit-font-smoothing: antialiased;
-    text-rendering: optimizeLegibility;
-    overflow-x: hidden;
-  }
-  html { scroll-behavior: auto; } /* smooth conflicts with JS scroll-driven animation; anchor links use JS scrollIntoView instead */
-  body { font-size: 17px; line-height: 1.5; }
-  img { display: block; max-width: 100%; }
-  a { color: inherit; text-decoration: none; }
+/* ── TOKENS ─────────────────────────────────────────────────────── */
+:root {
+  --bg:    #000;
+  --bg2:   #080808;
+  --bg3:   #0d0d0d;
+  --light: #f5f5f7;
+  --ink:   #ebebeb;
+  --dim:   #6e6e73;
+  --gold:  #c9a96e;
+  --gold2: #e4c488;
+  --dark:  #1d1d1f;
+  --max:   1200px;
+  --ease:  cubic-bezier(.22,.61,.36,1);
+}
 
-  /* ---------- NAV ---------- */
-  nav.top {
-    position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
-    height: 48px;
-    background: rgba(0,0,0,0.72);
-    backdrop-filter: saturate(180%) blur(20px);
-    -webkit-backdrop-filter: saturate(180%) blur(20px);
-    border-bottom: 1px solid rgba(255,255,255,0.08);
-    transition: background .4s var(--ease), border-color .4s var(--ease), color .4s var(--ease), opacity .55s var(--ease), transform .55s var(--ease);
-    opacity: 0;
-    transform: translateY(-100%);
-    pointer-events: none;
-  }
-  nav.top.revealed {
-    opacity: 1;
-    transform: none;
-    pointer-events: auto;
-  }
-  nav.top.light {
-    background: rgba(245,245,247,0.72);
-    border-bottom-color: rgba(0,0,0,0.08);
-    color: var(--ink-dark);
-  }
-  nav.top .wrap {
-    max-width: var(--max); margin: 0 auto; height: 100%;
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 0 22px;
-    font-size: 12px; font-weight: 400; letter-spacing: 0.01em;
-  }
-  nav.top .left { display: flex; align-items: center; gap: 14px; }
-  nav.top .mark {
-    width: 22px; height: 22px;
-    background: url('assets/logo.png') center/contain no-repeat;
-    filter: brightness(0) invert(1);
-    transition: filter .4s var(--ease);
-  }
-  nav.top.light .mark { filter: none; }
-  nav.top .brand { font-family: 'Cormorant Garamond', serif; font-size: 15px; letter-spacing: 0.35em; font-weight: 400; }
-  nav.top ul { list-style: none; display: flex; gap: 28px; }
-  nav.top ul a { opacity: .85; transition: opacity .2s; }
-  nav.top ul a:hover { opacity: 1; }
-  nav.top .right { display: flex; gap: 18px; align-items: center; }
-  nav.top .pill {
-    border: 1px solid currentColor; opacity: .85;
-    padding: 5px 12px; border-radius: 999px; font-size: 11px;
-    transition: background .2s, color .2s, opacity .2s;
-  }
-  nav.top .pill:hover { opacity: 1; background: currentColor; color: var(--bg); }
-  nav.top.light .pill:hover { color: var(--bg-light); }
+/* ── RESET ──────────────────────────────────────────────────────── */
+*,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
+html { scroll-behavior:auto; }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+  font-size: 16px; line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+img { display:block; }
+a { color:inherit; text-decoration:none; }
+button { font-family:inherit; cursor:pointer; border:none; background:none; }
 
-  /* ---------- HERO with sticky scroll-driven lid open ---------- */
-  .hero {
-    position: relative;
-    height: 200vh; /* 100vh scroll track — animation finishes at 84%, ~16vh dead zone */
-    background: #000;
-  }
-  .hero .stick {
-    position: sticky; top: 0; height: 100vh;
-    overflow: hidden;
-  }
-  .hero .vignette {
-    position: absolute; inset: 0;
-    background:
-      radial-gradient(55% 62% at 50% 52%, transparent 0%, rgba(0,0,0,0.52) 100%),
-      linear-gradient(180deg, rgba(0,0,0,0.62) 0%, transparent 18%, transparent 70%, #000 100%);
-    pointer-events: none; z-index: 4;
-  }
-  .hero .glow {
-    position: absolute;
-    left: 50%; top: 70%;
-    width: 56vmin; height: 56vmin;
-    transform: translate(-50%, -50%);
-    background: radial-gradient(circle, rgba(41,151,255,0.22) 0%, rgba(41,151,255,0) 65%);
-    filter: blur(28px);
-    opacity: 0;
-    z-index: 3;
-    pointer-events: none;
-  }
-  /* Full-viewport product images — stacked, JS drives opacity crossfade + scale */
-  .hero-img {
-    position: absolute; inset: 0;
-    width: 100%; height: 100%;
-    object-fit: cover;
-    object-position: center 45%;
-    will-change: transform, opacity;
-  }
-  .hero-img-closed { z-index: 2; }
-  .hero-img-open   { z-index: 1; opacity: 0; transform-origin: center 55%; }
-  .hero .copy {
-    position: absolute;
-    top: 11vh; left: 0; right: 0;
-    z-index: 5;
-    text-align: center;
-    pointer-events: none;
-  }
-  .hero .copy .inner {
-    opacity: 1;
-    will-change: opacity, transform;
-  }
-  .hero .eyebrow {
-    display: inline-block;
-    font-size: 12px; letter-spacing: .35em; text-transform: uppercase;
-    color: var(--ink-dim); margin-bottom: 18px;
-  }
-  .hero h1 {
-    font-family: 'Cormorant Garamond', serif;
-    font-weight: 300;
-    font-size: clamp(48px, 8.4vw, 120px);
-    line-height: 1.02;
-    letter-spacing: -0.01em;
-    background: linear-gradient(180deg, #ffffff 0%, #c9c9cf 100%);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-  }
-  .hero h1 em {
-    font-style: italic; font-weight: 300;
-    background: linear-gradient(180deg, var(--gold-2) 0%, var(--gold) 100%);
-    -webkit-background-clip: text; background-clip: text; color: transparent;
-  }
-  .hero .sub {
-    margin-top: 22px; color: var(--ink-dim); font-size: 19px; font-weight: 300;
-    letter-spacing: 0.02em;
-  }
-  .hero .cta-mini {
-    margin-top: 36px;
-    display: inline-flex; align-items: center; gap: 12px;
-    pointer-events: auto;
-    cursor: pointer;
-    color: var(--ink);
-    font-size: 14px; letter-spacing: 0.04em;
-    padding: 12px 18px 12px 14px;
-    border-radius: 999px;
-    background: rgba(255,255,255,0.06);
-    border: 1px solid rgba(255,255,255,0.18);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    transition: background .25s var(--ease), border-color .25s var(--ease), transform .25s var(--ease);
-  }
-  .hero .cta-mini:hover { background: rgba(255,255,255,0.12); border-color: rgba(255,255,255,0.32); transform: translateY(-1px); }
-  .hero .cta-mini .play {
-    width: 28px; height: 28px; border-radius: 999px;
-    background: var(--gold);
-    display: grid; place-items: center;
-    box-shadow: 0 0 0 4px rgba(212,168,90,0.18);
-  }
-  .hero .cta-mini .play svg { width: 11px; height: 11px; fill: #0d0a04; transform: translateX(1px); }
+/* ── NAV ────────────────────────────────────────────────────────── */
+.nav {
+  position: fixed; top:0; left:0; right:0; z-index:200;
+  height: 56px;
+  display: flex; align-items:center; justify-content:space-between;
+  padding: 0 36px;
+  transition: background .4s var(--ease), opacity .55s var(--ease), transform .55s var(--ease);
+  opacity: 0; transform: translateY(-100%);
+}
+.nav.on { opacity:1; transform:none; }
+.nav.frosted { background:rgba(0,0,0,.75); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); border-bottom:1px solid rgba(255,255,255,.07); }
+.nav.light-mode { background:rgba(245,245,247,.88); border-bottom:1px solid rgba(0,0,0,.08); }
+.nav.light-mode .nav-link,.nav.light-mode .nav-brand { color:var(--dark); }
+.nav.light-mode .nav-cta { border-color:rgba(0,0,0,.25); color:var(--dark); }
+.nav-brand { display:flex; align-items:center; gap:10px; font-size:13px; letter-spacing:.2em; text-transform:uppercase; font-weight:500; }
+.nav-brand img { width:26px; height:26px; object-fit:contain; }
+.nav-links { display:flex; gap:28px; }
+.nav-link { font-size:13px; color:rgba(255,255,255,.72); transition:color .2s; }
+.nav-link:hover { color:#fff; }
+.nav-cta { padding:7px 20px; border:1px solid rgba(255,255,255,.28); border-radius:100px; font-size:13px; transition:background .2s,border-color .2s; }
+.nav-cta:hover { background:rgba(255,255,255,.1); }
 
-  /* video lightbox */
-  .lightbox {
-    position: fixed; inset: 0; z-index: 1500;
-    background: rgba(0,0,0,0.86);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    display: grid; place-items: center;
-    opacity: 0; pointer-events: none;
-    transition: opacity .4s var(--ease);
-  }
-  .lightbox.on { opacity: 1; pointer-events: auto; }
-  .lightbox .box {
-    position: relative;
-    width: min(90vw, 1100px);
-    aspect-ratio: 16/9;
-    background: #000;
-    border-radius: 14px; overflow: hidden;
-    box-shadow: 0 40px 100px rgba(0,0,0,0.6);
-  }
-  .lightbox video { width: 100%; height: 100%; object-fit: contain; display: block; position: relative; z-index: 1; background: #000; }
-  .lightbox .close {
-    position: absolute; top: -42px; right: -2px;
-    background: rgba(255,255,255,0.08);
-    border: 1px solid rgba(255,255,255,0.2);
-    color: #fff;
-    width: 32px; height: 32px; border-radius: 999px;
-    display: grid; place-items: center; cursor: pointer;
-    transition: background .2s;
-  }
-  .lightbox .close:hover { background: rgba(255,255,255,0.16); }
-  .lightbox .placeholder {
-    position: absolute; inset: 0;
-    display: grid; place-items: center;
-    color: var(--ink-dim); font-size: 14px; letter-spacing: 0.18em; text-transform: uppercase;
-    background:
-      repeating-linear-gradient(45deg, rgba(255,255,255,0.02) 0 12px, rgba(255,255,255,0.05) 12px 24px);
-  }
-  .hero .scroll-hint {
-    position: absolute; bottom: 36px; left: 50%;
-    transform: translateX(-50%);
-    z-index: 6;
-    color: var(--ink-dim); font-size: 11px; letter-spacing: .3em; text-transform: uppercase;
-    display: flex; flex-direction: column; align-items: center; gap: 10px;
-    opacity: .7;
-    pointer-events: none;
-  }
-  .hero .scroll-hint .line {
-    width: 1px; height: 36px;
-    background: linear-gradient(180deg, rgba(255,255,255,0.6), rgba(255,255,255,0));
-    animation: drip 1.6s var(--ease) infinite;
-    transform-origin: top;
-  }
-  @keyframes drip {
-    0% { transform: scaleY(0); opacity: 0; }
-    40% { opacity: 1; }
-    100% { transform: scaleY(1); opacity: 0; }
-  }
+/* ── HERO (100vh, no scroll animation) ──────────────────────────── */
+.hero {
+  position: relative;
+  height: 100vh;
+  overflow: hidden;
+  display: flex; align-items:flex-end; justify-content:center;
+  background: #000;
+}
+.hero-img {
+  position: absolute; inset:0;
+  width:100%; height:100%;
+  object-fit:cover;
+  object-position:center 28%;
+  transform-origin: center 35%;
+  transition: transform 12s linear;
+}
+/* Subtle Ken Burns on load */
+.hero.loaded .hero-img { transform: scale(1.06); }
 
-  /* Hero "phase 2" big lead - revealed as lid opens */
-  .hero .lead {
-    position: absolute; left: 0; right: 0; bottom: 14vh;
-    text-align: center;
-    z-index: 5;
-    opacity: 0;
-    transform: translateY(40px);
-    will-change: opacity, transform;
-    pointer-events: none;
-    padding: 0 22px;
-  }
-  .hero .lead h2 {
-    font-family: 'Cormorant Garamond', serif;
-    font-weight: 300; font-style: italic;
-    font-size: clamp(28px, 4.4vw, 64px);
-    color: #fff;
-    letter-spacing: 0.005em;
-  }
-  .hero .lead p {
-    color: var(--ink-dim); margin-top: 10px; font-size: 16px;
-  }
+/* Vignette: top and bottom fade, sides subtle */
+.hero-vignette {
+  position: absolute; inset:0;
+  background:
+    linear-gradient(180deg, rgba(0,0,0,.55) 0%, rgba(0,0,0,0) 28%, rgba(0,0,0,0) 52%, rgba(0,0,0,.9) 100%),
+    linear-gradient(90deg, rgba(0,0,0,.3) 0%, transparent 20%, transparent 80%, rgba(0,0,0,.3) 100%);
+  pointer-events:none; z-index:2;
+}
 
-  /* ---------- SECTIONS ---------- */
-  section.panel { position: relative; padding: 160px 22px; }
-  section.panel.dark { background: #000; color: var(--ink); }
-  section.panel.light { background: var(--bg-light); color: var(--ink-dark); }
-  section.panel.haze {
-    background: radial-gradient(60% 70% at 50% 0%, #15171c 0%, #000 60%);
-  }
-  .container { max-width: var(--max); margin: 0 auto; }
+.hero-copy {
+  position:relative; z-index:3;
+  text-align:center;
+  padding: 0 24px 88px;
+  max-width: 860px;
+}
+.hero-eyebrow {
+  font-size:11px; letter-spacing:.5em; text-transform:uppercase;
+  color:var(--gold);
+  margin-bottom:22px;
+  opacity:0; transform:translateY(16px);
+  transition:opacity .8s var(--ease) .2s, transform .8s var(--ease) .2s;
+}
+.hero h1 {
+  font-family:'Cormorant Garamond',serif;
+  font-size:clamp(56px, 8.5vw, 120px);
+  font-weight:300; line-height:1.0; letter-spacing:-.01em;
+  margin-bottom:24px;
+  opacity:0; transform:translateY(22px);
+  transition:opacity .9s var(--ease) .4s, transform .9s var(--ease) .4s;
+}
+.hero h1 em { font-style:italic; color:var(--gold); }
+.hero-sub {
+  font-size:17px; color:rgba(255,255,255,.58);
+  max-width:44ch; margin:0 auto 44px;
+  opacity:0; transform:translateY(16px);
+  transition:opacity .8s var(--ease) .6s, transform .8s var(--ease) .6s;
+}
+.hero-actions {
+  display:flex; align-items:center; justify-content:center; gap:14px;
+  opacity:0; transform:translateY(14px);
+  transition:opacity .7s var(--ease) .78s, transform .7s var(--ease) .78s;
+}
+.hero.loaded .hero-eyebrow,
+.hero.loaded h1,
+.hero.loaded .hero-sub,
+.hero.loaded .hero-actions { opacity:1; transform:none; }
 
-  .eyebrow {
-    font-size: 12px; letter-spacing: .35em; text-transform: uppercase;
-    color: var(--ink-dim);
-  }
-  section.panel.light .eyebrow { color: var(--ink-dark-dim); }
-  .display {
-    font-family: 'Cormorant Garamond', serif; font-weight: 300;
-    font-size: clamp(40px, 5.6vw, 84px);
-    line-height: 1.05;
-    letter-spacing: -0.01em;
-  }
-  .display em {
-    font-style: italic;
-    background: linear-gradient(180deg, var(--gold-2), var(--gold));
-    -webkit-background-clip: text; background-clip: text; color: transparent;
-  }
-  .body-l { font-size: 21px; line-height: 1.5; font-weight: 300; color: var(--ink-dim); }
-  section.panel.light .body-l { color: var(--ink-dark-dim); }
+.btn-gold {
+  padding:13px 32px; border-radius:100px;
+  background:var(--gold); color:#000;
+  font-size:14px; font-weight:600; letter-spacing:.04em;
+  transition:background .2s, transform .15s;
+}
+.btn-gold:hover { background:var(--gold2); transform:translateY(-1px); }
+.btn-ghost {
+  padding:13px 32px; border-radius:100px;
+  border:1px solid rgba(255,255,255,.28);
+  font-size:14px; letter-spacing:.04em;
+  transition:background .2s, border-color .2s;
+}
+.btn-ghost:hover { background:rgba(255,255,255,.08); border-color:rgba(255,255,255,.45); }
 
-  /* ---------- MARQUEE STATS ---------- */
-  .stats {
-    display: grid; grid-template-columns: repeat(4, 1fr); gap: 30px;
-    padding: 60px 0;
-    border-top: 1px solid rgba(255,255,255,0.08);
-    border-bottom: 1px solid rgba(255,255,255,0.08);
-  }
-  .stat .n {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: clamp(36px, 4.5vw, 64px); font-weight: 300; line-height: 1;
-    background: linear-gradient(180deg, #fff 0%, #9b9ba1 100%);
-    -webkit-background-clip: text; background-clip: text; color: transparent;
-  }
-  .stat .l { margin-top: 10px; color: var(--ink-dim); font-size: 13px; letter-spacing: .18em; text-transform: uppercase; }
+.scroll-hint {
+  position:absolute; bottom:30px; left:50%;
+  transform:translateX(-50%); z-index:3;
+  display:flex; flex-direction:column; align-items:center; gap:8px;
+  opacity:0; transition:opacity .6s var(--ease) 1.1s;
+}
+.hero.loaded .scroll-hint { opacity:1; }
+.scroll-hint span { font-size:10px; letter-spacing:.4em; text-transform:uppercase; color:rgba(255,255,255,.35); }
+.hint-line { width:1px; height:38px; background:rgba(255,255,255,.15); overflow:hidden; position:relative; }
+.hint-line::after {
+  content:''; position:absolute; top:-100%; left:0;
+  width:100%; height:100%; background:var(--gold);
+  animation:hint-fall 1.8s ease infinite;
+}
+@keyframes hint-fall { 0%{top:-100%} 100%{top:200%} }
 
-  /* ---------- FEATURE SPLIT ---------- */
-  .split {
-    display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center;
-  }
-  .split.reverse { direction: rtl; }
-  .split.reverse > * { direction: ltr; }
-  .split h3 {
-    font-family: 'Cormorant Garamond', serif;
-    font-weight: 300;
-    font-size: clamp(34px, 4.2vw, 58px);
-    line-height: 1.06; letter-spacing: -0.01em;
-    margin-bottom: 18px;
-  }
-  .split h3 em { font-style: italic; color: var(--gold); }
-  .split .imgwrap {
-    position: relative;
-    border-radius: 24px;
-    overflow: hidden;
-    aspect-ratio: 4/5;
-    background: #0a0a0a;
-  }
-  .split .imgwrap img { width: 100%; height: 100%; object-fit: cover; }
-  .split .imgwrap.contain { background: #000; }
-  .split .imgwrap.contain img { object-fit: contain; padding: 4%; }
-  .feat-list { margin-top: 26px; display: grid; gap: 14px; }
-  .feat-list li {
-    list-style: none; display: flex; align-items: flex-start; gap: 14px;
-    color: var(--ink-dim); font-size: 16px;
-  }
-  section.panel.light .feat-list li { color: var(--ink-dark-dim); }
-  .feat-list .dot {
-    width: 6px; height: 6px; border-radius: 999px;
-    background: var(--gold); margin-top: 9px; flex: none;
-  }
+/* ── REVEAL SECTION (crossfade lid open on scroll) ──────────────── */
+.reveal-wrap {
+  position:relative;
+  height:220vh;
+}
+.reveal-pin {
+  position:sticky; top:0; height:100vh;
+  overflow:hidden;
+}
+/* Both images occupy the full sticky viewport */
+.reveal-closed,
+.reveal-open {
+  position:absolute; inset:0;
+  width:100%; height:100%;
+  object-fit:cover;
+  object-position:center 35%;
+}
+.reveal-open { opacity:0; will-change:opacity; }
+.reveal-vignette {
+  position:absolute; inset:0;
+  background:
+    linear-gradient(180deg, rgba(0,0,0,.5) 0%, transparent 25%, transparent 65%, rgba(0,0,0,.85) 100%);
+  z-index:2; pointer-events:none;
+}
+.reveal-text {
+  position:absolute; inset:0; z-index:3;
+  display:flex; flex-direction:column; align-items:center; justify-content:flex-end;
+  padding-bottom:72px;
+  text-align:center;
+}
+.reveal-label {
+  font-size:11px; letter-spacing:.5em; text-transform:uppercase;
+  color:var(--gold); margin-bottom:18px;
+}
+.reveal-h2 {
+  font-family:'Cormorant Garamond',serif;
+  font-size:clamp(34px, 5vw, 72px); font-weight:300;
+  line-height:1.05; max-width:18ch;
+  padding:0 24px;
+}
+.reveal-h2 em { font-style:italic; color:var(--gold); }
+.reveal-sub {
+  font-size:16px; color:rgba(255,255,255,.55);
+  max-width:46ch; margin:18px auto 0; padding:0 24px;
+  opacity:0; transform:translateY(14px);
+  transition:opacity .7s var(--ease), transform .7s var(--ease);
+}
+.reveal-sub.show { opacity:1; transform:none; }
 
-  /* ---------- FOUR FEATURE GRID (with overlay tiles) ---------- */
-  .feat-grid {
-    display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px;
-    margin-top: 60px;
-  }
-  .feat-card {
-    position: relative;
-    border-radius: 22px; overflow: hidden;
-    background: #0c0c0d;
-    aspect-ratio: 2/3;
-    border: 1px solid rgba(255,255,255,0.06);
-    transition: transform .5s var(--ease), border-color .3s;
-  }
-  .feat-card:hover { transform: translateY(-4px); border-color: rgba(255,255,255,0.18); }
-  .feat-card .bg {
-    position: absolute; inset: 0;
-    background-image: url('assets/features-grid.png');
-    background-size: 200% 200%;
-    transition: transform 1.2s var(--ease);
-  }
-  .feat-card:hover .bg { transform: scale(1.04); }
-  .feat-card.c1 .bg { background-position: 0% 0%; }
-  .feat-card.c2 .bg { background-position: 100% 0%; }
-  .feat-card.c3 .bg { background-position: 0% 100%; }
-  .feat-card.c4 .bg { background-position: 100% 100%; }
-  .feat-card .scrim {
-    position: absolute; inset: 0;
-    background: linear-gradient(180deg, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.0) 35%, rgba(0,0,0,0.85) 100%);
-  }
-  .feat-card .label {
-    position: absolute; left: 22px; right: 22px; bottom: 22px;
-  }
-  .feat-card .label .t {
-    font-family: 'Cormorant Garamond', serif; font-weight: 400;
-    font-size: 26px; line-height: 1.1; letter-spacing: 0.005em;
-  }
-  .feat-card .label .d {
-    margin-top: 8px; color: var(--ink-dim); font-size: 13px;
-    line-height: 1.45;
-  }
+/* ── STATS ──────────────────────────────────────────────────────── */
+.stats-bar {
+  background:var(--bg2);
+  border-top:1px solid rgba(255,255,255,.06);
+  border-bottom:1px solid rgba(255,255,255,.06);
+}
+.stats-inner {
+  max-width:var(--max); margin:0 auto;
+  display:grid; grid-template-columns:repeat(4,1fr);
+  gap:0;
+}
+.stat-cell {
+  padding:56px 40px;
+  text-align:center;
+  border-right:1px solid rgba(255,255,255,.06);
+}
+.stat-cell:last-child { border-right:none; }
+.stat-n {
+  font-family:'Cormorant Garamond',serif;
+  font-size:62px; font-weight:300; line-height:1;
+  color:var(--gold); letter-spacing:-.02em;
+}
+.stat-n sup { font-size:.45em; color:rgba(201,169,110,.55); vertical-align:.35em; }
+.stat-l { margin-top:10px; font-size:13px; color:var(--dim); letter-spacing:.04em; }
 
-  /* ---------- DISPLAY SECTION (HD LCD) ---------- */
-  .display-section { position: relative; overflow: hidden; }
-  .display-section .container { position: relative; z-index: 2; }
-  .display-shot {
-    position: relative;
-    margin-top: 60px;
-    aspect-ratio: 16/9;
-    border-radius: 28px;
-    overflow: hidden;
-    background: #08090c url('assets/display.png') center/cover no-repeat;
-    box-shadow: 0 60px 120px -40px rgba(41,151,255,0.18), 0 0 0 1px rgba(255,255,255,0.06) inset;
-  }
-  .display-section .chips {
-    margin-top: 40px;
-    display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;
-  }
-  .chip {
-    border: 1px solid rgba(255,255,255,0.1);
-    border-radius: 14px;
-    padding: 22px 22px;
-    background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0));
-  }
-  .chip .k {
-    font-family: 'Cormorant Garamond', serif; font-size: 32px; font-weight: 400;
-    color: #fff;
-  }
-  .chip .k span { color: var(--ink-dim); font-size: 16px; font-family: 'Inter', sans-serif; margin-left: 6px; }
-  .chip .v {
-    margin-top: 6px; color: var(--ink-dim); font-size: 13px;
-    letter-spacing: 0.16em; text-transform: uppercase;
-  }
+/* ── FEATURES ───────────────────────────────────────────────────── */
+.features {
+  padding:140px 24px;
+  background:var(--bg);
+}
+.features .wrap { max-width:var(--max); margin:0 auto; }
+.sec-eyebrow {
+  font-size:11px; letter-spacing:.5em; text-transform:uppercase;
+  color:var(--gold); margin-bottom:18px;
+}
+.sec-h2 {
+  font-family:'Cormorant Garamond',serif;
+  font-size:clamp(36px,4.5vw,64px); font-weight:300;
+  line-height:1.05; margin-bottom:80px;
+}
+.sec-h2 em { font-style:italic; }
+.feat-grid {
+  display:grid; grid-template-columns:repeat(2,1fr);
+  border:1px solid rgba(255,255,255,.07);
+}
+.feat-card {
+  padding:56px 52px;
+  border-right:1px solid rgba(255,255,255,.07);
+  border-bottom:1px solid rgba(255,255,255,.07);
+  transition:background .3s;
+}
+.feat-card:nth-child(2n) { border-right:none; }
+.feat-card:nth-child(3),.feat-card:nth-child(4) { border-bottom:none; }
+.feat-card:hover { background:rgba(255,255,255,.025); }
+.feat-icon {
+  width:48px; height:48px; border-radius:14px;
+  background:rgba(201,169,110,.1);
+  display:flex; align-items:center; justify-content:center;
+  margin-bottom:28px;
+}
+.feat-icon svg { width:22px; height:22px; stroke:var(--gold); fill:none; stroke-width:1.5; stroke-linecap:round; stroke-linejoin:round; }
+.feat-card h3 {
+  font-family:'Cormorant Garamond',serif;
+  font-size:26px; font-weight:400; margin-bottom:14px;
+}
+.feat-card p { font-size:15px; color:var(--dim); line-height:1.75; }
 
-  /* ---------- LIFESTYLE PARALLAX ---------- */
-  .lifestyle {
-    position: relative;
-    height: 92vh; min-height: 680px;
-    overflow: hidden;
-  }
-  .lifestyle .bg {
-    position: absolute; inset: -10% 0;
-    background: url('assets/lifestyle.png') center/cover no-repeat;
-    will-change: transform;
-  }
-  .lifestyle .scrim {
-    position: absolute; inset: 0;
-    background: linear-gradient(180deg, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0) 30%, rgba(0,0,0,0.55) 100%);
-  }
-  .lifestyle .copy {
-    position: absolute; left: 0; right: 0; bottom: 12vh;
-    text-align: center; color: #fff;
-    padding: 0 22px;
-  }
-  .lifestyle h3 {
-    font-family: 'Cormorant Garamond', serif; font-weight: 300; font-style: italic;
-    font-size: clamp(36px, 5.4vw, 76px);
-    text-shadow: 0 2px 20px rgba(0,0,0,0.35);
-    letter-spacing: 0.005em;
-  }
-  .lifestyle p { color: #efefef; margin-top: 14px; font-weight: 300; }
+/* ── SPLIT (image + text) ───────────────────────────────────────── */
+.split {
+  display:grid; grid-template-columns:1fr 1fr;
+  min-height:640px;
+  background:var(--bg2);
+}
+.split.rev { direction:rtl; }
+.split.rev > * { direction:ltr; }
+.split-img {
+  overflow:hidden;
+  background:var(--bg3);
+  display:flex; align-items:center; justify-content:center;
+}
+.split-img img {
+  width:100%; height:100%;
+  object-fit:contain; padding:8%;
+}
+.split-body {
+  padding:80px 72px;
+  display:flex; flex-direction:column; justify-content:center;
+}
+.split-body .sec-eyebrow { margin-bottom:16px; }
+.split-body h2 {
+  font-family:'Cormorant Garamond',serif;
+  font-size:clamp(32px,3.8vw,52px); font-weight:300;
+  line-height:1.1; margin-bottom:22px;
+}
+.split-body h2 em { font-style:italic; }
+.split-body p { font-size:16px; color:var(--dim); line-height:1.8; margin-bottom:14px; }
+.split-list { list-style:none; margin-top:10px; }
+.split-list li {
+  font-size:14px; color:var(--dim);
+  padding:12px 0; border-bottom:1px solid rgba(255,255,255,.06);
+  display:flex; align-items:center; gap:12px;
+}
+.split-list li::before {
+  content:''; display:inline-block;
+  width:5px; height:5px; border-radius:50%;
+  background:var(--gold); flex-shrink:0;
+}
 
-  /* ---------- SPECS ---------- */
-  .specs-grid {
-    margin-top: 60px;
-    display: grid; grid-template-columns: repeat(2, 1fr);
-    border-top: 1px solid rgba(0,0,0,0.1);
-  }
-  .spec {
-    padding: 28px 0;
-    border-bottom: 1px solid rgba(0,0,0,0.1);
-    display: grid; grid-template-columns: 220px 1fr; gap: 30px;
-    align-items: baseline;
-  }
-  .spec:nth-child(odd) { padding-right: 30px; border-right: 1px solid rgba(0,0,0,0.1); }
-  .spec:nth-child(even) { padding-left: 30px; }
-  .spec .k { font-size: 13px; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-dark-dim); }
-  .spec .v { font-size: 16px; color: var(--ink-dark); font-weight: 500; }
+/* ── LIFESTYLE ──────────────────────────────────────────────────── */
+.lifestyle {
+  position:relative;
+  height:65vh; min-height:420px;
+  overflow:hidden;
+  display:flex; align-items:center; justify-content:center;
+}
+.ls-bg {
+  position:absolute; inset:-8%;
+  background-size:cover; background-position:center;
+  will-change:transform;
+}
+.ls-vignette {
+  position:absolute; inset:0;
+  background:rgba(0,0,0,.55);
+}
+.ls-copy {
+  position:relative; z-index:2;
+  text-align:center; padding:0 24px;
+}
+.ls-copy h2 {
+  font-family:'Cormorant Garamond',serif;
+  font-size:clamp(44px,6.5vw,96px); font-weight:300;
+  line-height:1.0; color:#fff;
+}
+.ls-copy h2 em { font-style:italic; color:var(--gold); }
 
-  /* ---------- CONTACT / CTA ---------- */
-  .contact { padding: 160px 22px 120px; text-align: center; background: #000; }
-  .contact .display { max-width: 16ch; margin: 18px auto 26px; }
-  .contact .body-l { max-width: 56ch; margin: 0 auto; }
-  .cta-row {
-    margin-top: 56px;
-    display: flex; gap: 16px; justify-content: center; flex-wrap: wrap;
-  }
-  .cta {
-    display: inline-flex; align-items: center; gap: 12px;
-    padding: 16px 28px; border-radius: 999px;
-    font-weight: 500; font-size: 15px;
-    transition: transform .3s var(--ease), background .3s, color .3s, box-shadow .3s;
-    will-change: transform;
-  }
-  .cta:hover { transform: translateY(-2px); }
-  .cta.primary {
-    background: #fff; color: #000;
-    box-shadow: 0 12px 30px -10px rgba(255,255,255,0.25);
-  }
-  .cta.primary:hover { background: #f5f5f7; }
-  .cta.whatsapp {
-    background: #25D366; color: #061a0c;
-    box-shadow: 0 12px 30px -10px rgba(37,211,102,0.45);
-  }
-  .cta.ghost { background: rgba(255,255,255,0.06); color: #fff; border: 1px solid rgba(255,255,255,0.18); }
-  .cta svg { width: 18px; height: 18px; }
+/* ── SPECS ──────────────────────────────────────────────────────── */
+.specs {
+  padding:140px 24px;
+  background:var(--light);
+  color:var(--dark);
+}
+.specs .wrap { max-width:var(--max); margin:0 auto; }
+.specs .sec-eyebrow { color:#86868b; }
+.specs .sec-h2 { color:var(--dark); margin-bottom:60px; }
+.spec-grid {
+  display:grid; grid-template-columns:repeat(2,1fr);
+  gap:0 80px;
+}
+.spec-row {
+  display:grid; grid-template-columns:2fr 3fr;
+  padding:16px 0; border-bottom:1px solid rgba(0,0,0,.08);
+  font-size:15px;
+}
+.spec-row span:first-child { color:#86868b; font-size:13px; letter-spacing:.02em; padding-top:1px; }
+.spec-row span:last-child { color:var(--dark); }
 
-  .contact-strip {
-    margin-top: 72px;
-    display: grid; grid-template-columns: 1fr 1fr; gap: 20px;
-    max-width: 760px; margin-left: auto; margin-right: auto;
-  }
-  .contact-card {
-    text-align: left;
-    padding: 28px 28px;
-    border-radius: 18px;
-    background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.01));
-    border: 1px solid rgba(255,255,255,0.08);
-  }
-  .contact-card .ttl {
-    font-size: 12px; letter-spacing: .22em; text-transform: uppercase; color: var(--ink-dim);
-  }
-  .contact-card .val {
-    margin-top: 8px;
-    font-family: 'Cormorant Garamond', serif; font-size: 26px; color: #fff;
-  }
-  .contact-card .val:hover { color: var(--gold-2); }
+/* ── CONTACT ────────────────────────────────────────────────────── */
+.contact {
+  padding:140px 24px;
+  background:var(--bg);
+  text-align:center;
+}
+.contact .sec-eyebrow { display:block; margin-bottom:18px; }
+.contact h2 {
+  font-family:'Cormorant Garamond',serif;
+  font-size:clamp(40px,5.5vw,80px); font-weight:300;
+  line-height:1.05; margin-bottom:20px;
+}
+.contact h2 em { font-style:italic; color:var(--gold); }
+.contact p { font-size:17px; color:var(--dim); max-width:46ch; margin:0 auto 52px; }
+.contact-btns { display:flex; justify-content:center; flex-wrap:wrap; gap:14px; }
+.c-btn {
+  display:inline-flex; align-items:center; gap:10px;
+  padding:15px 32px; border-radius:100px;
+  font-size:15px; transition:background .2s, border-color .2s, transform .15s;
+}
+.c-btn:hover { transform:translateY(-1px); }
+.c-btn.gold { background:var(--gold); color:#000; font-weight:600; }
+.c-btn.gold:hover { background:var(--gold2); }
+.c-btn.outline { border:1px solid rgba(255,255,255,.25); }
+.c-btn.outline:hover { background:rgba(255,255,255,.07); border-color:rgba(255,255,255,.4); }
+.c-btn svg { width:18px; height:18px; stroke:currentColor; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; flex-shrink:0; }
 
-  /* ---------- FOOTER ---------- */
-  footer {
-    background: #000;
-    color: var(--ink-dim);
-    border-top: 1px solid rgba(255,255,255,0.08);
-    padding: 36px 22px;
-    font-size: 12px;
-  }
-  footer .row {
-    max-width: var(--max); margin: 0 auto;
-    display: flex; justify-content: space-between; align-items: center;
-    gap: 20px; flex-wrap: wrap;
-  }
-  footer .brand-mini {
-    display: flex; align-items: center; gap: 12px;
-  }
-  footer .brand-mini .mark {
-    width: 22px; height: 22px;
-    background: url('assets/logo.png') center/contain no-repeat;
-    filter: brightness(0) invert(1) opacity(.85);
-  }
-  footer .brand-mini span {
-    font-family: 'Cormorant Garamond', serif; font-size: 15px; letter-spacing: 0.35em;
-  }
-  footer ul { list-style: none; display: flex; gap: 24px; }
+/* ── FOOTER ─────────────────────────────────────────────────────── */
+footer {
+  padding:40px 36px;
+  border-top:1px solid rgba(255,255,255,.06);
+  display:flex; align-items:center; justify-content:space-between;
+}
+.foot-brand { font-size:12px; letter-spacing:.2em; text-transform:uppercase; color:rgba(255,255,255,.3); }
+.foot-links { display:flex; gap:24px; }
+.foot-links a { font-size:13px; color:rgba(255,255,255,.3); transition:color .2s; }
+.foot-links a:hover { color:rgba(255,255,255,.7); }
 
-  /* ---------- REVEAL ANIM ---------- */
-  .reveal { opacity: 0; transform: translateY(28px); transition: opacity .9s var(--ease), transform .9s var(--ease); }
-  .reveal.in { opacity: 1; transform: none; }
-  .reveal.d2 { transition-delay: .08s; }
-  .reveal.d3 { transition-delay: .16s; }
-  .reveal.d4 { transition-delay: .24s; }
+/* ── FADE-UP (IntersectionObserver) ─────────────────────────────── */
+.fu {
+  opacity:0; transform:translateY(28px);
+  transition:opacity .9s var(--ease), transform .9s var(--ease);
+}
+.fu.d1 { transition-delay:.1s; }
+.fu.d2 { transition-delay:.22s; }
+.fu.d3 { transition-delay:.34s; }
+.fu.d4 { transition-delay:.46s; }
+.fu.in { opacity:1; transform:none; }
 
-  /* ---------- responsive ---------- */
-  @media (max-width: 900px) {
-    nav.top ul { display: none; }
-    .split { grid-template-columns: 1fr; gap: 40px; }
-    .feat-grid { grid-template-columns: repeat(2, 1fr); }
-    .stats { grid-template-columns: repeat(2, 1fr); }
-    .specs-grid { grid-template-columns: 1fr; }
-    .spec { grid-template-columns: 1fr; gap: 6px; padding: 22px 0 !important; border-right: none !important; padding-left: 0 !important; padding-right: 0 !important; }
-    .display-section .chips { grid-template-columns: 1fr; }
-    .contact-strip { grid-template-columns: 1fr; }
-    section.panel { padding: 100px 20px; }
-  }
+/* ── VIDEO LIGHTBOX ─────────────────────────────────────────────── */
+.lb {
+  position:fixed; inset:0; z-index:500;
+  background:rgba(0,0,0,.9); backdrop-filter:blur(16px);
+  display:flex; align-items:center; justify-content:center;
+  opacity:0; pointer-events:none;
+  transition:opacity .3s;
+}
+.lb.open { opacity:1; pointer-events:all; }
+.lb video { width:90%; max-width:960px; border-radius:12px; }
+.lb-x {
+  position:absolute; top:20px; right:20px;
+  width:44px; height:44px; border-radius:50%;
+  border:1px solid rgba(255,255,255,.2); background:rgba(255,255,255,.08);
+  display:flex; align-items:center; justify-content:center;
+  cursor:pointer; transition:background .2s;
+}
+.lb-x:hover { background:rgba(255,255,255,.18); }
+.lb-x svg { width:18px; height:18px; stroke:#fff; fill:none; stroke-width:2; stroke-linecap:round; }
+
+/* ── RESPONSIVE ─────────────────────────────────────────────────── */
+@media(max-width:900px) {
+  .nav-links { display:none; }
+  .feat-grid { grid-template-columns:1fr; }
+  .feat-card { border-right:none; }
+  .feat-card:nth-child(3) { border-bottom:1px solid rgba(255,255,255,.07); }
+  .feat-card:nth-child(4) { border-bottom:none; }
+  .split { grid-template-columns:1fr; min-height:auto; }
+  .split.rev { direction:ltr; }
+  .split-img { height:360px; }
+  .split-body { padding:56px 28px; }
+  .stats-inner { grid-template-columns:repeat(2,1fr); }
+  .stat-cell:nth-child(2) { border-right:none; }
+  .stat-cell { border-bottom:1px solid rgba(255,255,255,.06); }
+  .spec-grid { grid-template-columns:1fr; }
+  footer { flex-direction:column; gap:20px; text-align:center; }
+}
 </style>
 </head>
 <body>
 
-<!-- ============================ NAV ============================ -->
-<nav class="top" id="topNav">
-  <div class="wrap">
-    <div class="left">
-      <div class="mark" aria-hidden="true"></div>
-      <div class="brand">ORVIQUE</div>
-    </div>
-    <ul>
-      <li><a href="#design">Design</a></li>
-      <li><a href="#features">Features</a></li>
-      <li><a href="#display">Display</a></li>
-      <li><a href="#specs">Specs</a></li>
-      <li><a href="#contact">Contact</a></li>
-    </ul>
-    <div class="right">
-      <a class="pill" href="#contact">Enquire</a>
-    </div>
+<!-- ══ NAV ══════════════════════════════════════════════════════ -->
+<nav class="nav" id="nav">
+  <div class="nav-brand">
+    <img src="assets/logo.png" alt="Orvique logo"/>
+    ORVIQUE
   </div>
+  <div class="nav-links">
+    <a href="#design"   class="nav-link">Design</a>
+    <a href="#features" class="nav-link">Features</a>
+    <a href="#display"  class="nav-link">Display</a>
+    <a href="#specs"    class="nav-link">Specs</a>
+    <a href="#contact"  class="nav-link">Contact</a>
+  </div>
+  <a href="#contact" class="nav-cta">Enquire</a>
 </nav>
 
-<!-- ============================ HERO ============================ -->
+<!-- ══ HERO ═════════════════════════════════════════════════════ -->
 <header class="hero" id="hero">
-  <div class="stick">
-    <img class="hero-img hero-img-closed" id="imgClosed" src="assets/toilet-closed.png" alt="Orvique smart toilet, lid closed" />
-    <img class="hero-img hero-img-open"   id="imgOpen"   src="assets/toilet-open.png"   alt="Orvique smart toilet, lid open with ambient light" />
-    <div class="vignette"></div>
-    <div class="glow" id="heroGlow"></div>
-    <div class="copy">
-      <div class="inner" id="heroCopy">
-        <span class="eyebrow">Orvique &nbsp;·&nbsp; The All‑New Series One</span>
-        <h1>Intelligent<br /><em>Comfort.</em></h1>
-        <p class="sub">A smarter ritual. Engineered around you.</p>
-        <button class="cta-mini" id="openVideo" type="button" aria-label="Watch the film">
-          <span class="play" aria-hidden="true">
-            <svg viewBox="0 0 12 12"><path d="M2 1 L11 6 L2 11 Z"/></svg>
-          </span>
-          Watch the film
-          <span style="color: var(--ink-dim); margin-left: 4px;">· 1:42</span>
-        </button>
-      </div>
+  <img class="hero-img" src="assets/toilet-closed.png" alt="Orvique Series One smart toilet"/>
+  <div class="hero-vignette"></div>
+  <div class="hero-copy">
+    <p class="hero-eyebrow">Series One &nbsp;·&nbsp; Smart Toilet</p>
+    <h1>Intelligent <em>Comfort</em></h1>
+    <p class="hero-sub">The toilet that knows when you arrive. Auto-open, auto-clean, always the right temperature.</p>
+    <div class="hero-actions">
+      <a href="#contact" class="btn-gold">Enquire Now</a>
+      <button class="btn-ghost" id="watchBtn">Watch the Film</button>
     </div>
-    <div class="lead" id="heroLead">
-      <h2>It opens, the moment you arrive.</h2>
-      <p>Proximity sensors. Cushioned hinge. No touch required.</p>
-    </div>
-    <div class="scroll-hint">
-      <span>Scroll</span>
-      <span class="line"></span>
-    </div>
+  </div>
+  <div class="scroll-hint">
+    <span>Scroll</span>
+    <div class="hint-line"></div>
   </div>
 </header>
 
-<!-- ============================ VIDEO LIGHTBOX ============================ -->
-<div class="lightbox" id="videoLightbox" aria-hidden="true">
-  <div class="box">
-    <button class="close" id="closeVideo" aria-label="Close">
-      <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M1 1 L11 11 M11 1 L1 11"/></svg>
-    </button>
-    <div class="placeholder">Loading film…</div>
-    <video src="assets/film.mp4" controls playsinline preload="metadata"></video>
-  </div>
-</div>
-
-<!-- ============================ INTRO STATS ============================ -->
-<section class="panel haze" id="design" style="padding-top: 80px;">
-  <div class="container">
-    <div class="reveal"><span class="eyebrow">Designed in detail</span></div>
-    <h2 class="display reveal d2" style="margin-top:18px; max-width: 16ch;">A bathroom companion, <em>refined to the smallest gesture.</em></h2>
-    <p class="body-l reveal d3" style="margin-top:30px; max-width: 60ch;">
-      Every Orvique is shaped from a single, seamless silhouette — no visible tank, no exposed hardware. Beneath the matte ceramic, an embedded computer quietly orchestrates warmth, water and air.
-    </p>
-
-    <div class="stats reveal d4" style="margin-top: 80px;">
-      <div class="stat"><div class="n">0.3<span style="font-size:.55em;color:var(--ink-dim);"> s</span></div><div class="l">Wake to ready</div></div>
-      <div class="stat"><div class="n">40<span style="font-size:.55em;color:var(--ink-dim);"> °C</span></div><div class="l">Heated seat</div></div>
-      <div class="stat"><div class="n">5<span style="font-size:.55em;color:var(--ink-dim);"> modes</span></div><div class="l">Cleansing</div></div>
-      <div class="stat"><div class="n">48<span style="font-size:.55em;color:var(--ink-dim);"> dB</span></div><div class="l">Whisper quiet</div></div>
+<!-- ══ REVEAL (lid opens on scroll) ═════════════════════════════ -->
+<section class="reveal-wrap" id="design">
+  <div class="reveal-pin" id="revealPin">
+    <img class="reveal-closed" id="rClosed" src="assets/toilet-closed.png" alt="Orvique, lid closed"/>
+    <img class="reveal-open"   id="rOpen"   src="assets/toilet-open.png"   alt="Orvique, lid open"/>
+    <div class="reveal-vignette"></div>
+    <div class="reveal-text">
+      <p class="reveal-label">Auto Open &amp; Close</p>
+      <h2 class="reveal-h2" id="rHeadline">It waits, then <em>welcomes you.</em></h2>
+      <p class="reveal-sub" id="rSub">Proximity sensors detect your approach from up to 1.2 m. The cushioned hinge responds in 0.3 seconds — silent, graceful, automatic.</p>
     </div>
   </div>
 </section>
 
-<!-- ============================ FEATURE SPLIT 1 — auto open ============================ -->
-<section class="panel dark" id="features">
-  <div class="container">
-    <div class="split">
-      <div class="reveal">
-        <span class="eyebrow">Auto Open &amp; Close</span>
-        <h3 style="margin-top:18px;">A welcome, <em>before you ask.</em></h3>
-        <p class="body-l">An infrared array reads your approach from two metres away. The lid eases open on a damped hinge — silent, never abrupt — and softly closes when you leave.</p>
-        <ul class="feat-list">
-          <li><span class="dot"></span>Approach &amp; departure detection</li>
-          <li><span class="dot"></span>Soft-close, anti-pinch hinge</li>
-          <li><span class="dot"></span>Foot-tap manual override</li>
-        </ul>
-      </div>
-      <div class="imgwrap contain reveal d2"><img src="assets/toilet-open.png" alt="Lid auto-opens with interior light" /></div>
-    </div>
+<!-- ══ STATS ════════════════════════════════════════════════════ -->
+<section class="stats-bar">
+  <div class="stats-inner">
+    <div class="stat-cell fu"><div class="stat-n">0.3<sup>s</sup></div><div class="stat-l">Wake to ready</div></div>
+    <div class="stat-cell fu d1"><div class="stat-n">40<sup>°C</sup></div><div class="stat-l">Heated seat</div></div>
+    <div class="stat-cell fu d2"><div class="stat-n">5<sup>modes</sup></div><div class="stat-l">Cleansing</div></div>
+    <div class="stat-cell fu d3"><div class="stat-n">48<sup>dB</sup></div><div class="stat-l">Whisper quiet</div></div>
   </div>
 </section>
 
-<!-- ============================ FOUR FEATURE GRID ============================ -->
-<section class="panel haze">
-  <div class="container">
-    <div class="reveal"><span class="eyebrow">Four pillars</span></div>
-    <h2 class="display reveal d2" style="margin-top: 18px; max-width: 18ch;">Engineered comfort, <em>quietly automated.</em></h2>
-
+<!-- ══ FEATURES ═════════════════════════════════════════════════ -->
+<section class="features" id="features">
+  <div class="wrap">
+    <div class="fu"><p class="sec-eyebrow">Core Features</p></div>
+    <h2 class="sec-h2 fu d1">Every detail, <em>considered.</em></h2>
     <div class="feat-grid">
-      <div class="feat-card c1 reveal">
-        <div class="bg"></div><div class="scrim"></div>
-        <div class="label">
-          <div class="t">Auto Open<br />&amp; Close</div>
-          <div class="d">Hands-free, hinge-damped lid with ambient bowl light.</div>
+
+      <div class="feat-card fu">
+        <div class="feat-icon">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M6.3 17.7A8 8 0 1 1 17.7 6.3"/><path d="M3.1 20.9A12 12 0 1 1 20.9 3.1"/></svg>
         </div>
+        <h3>Auto Open &amp; Close</h3>
+        <p>Proximity sensors detect your approach and the lid lifts silently in 0.3 s — no touch, no buttons. It closes automatically once you leave.</p>
       </div>
-      <div class="feat-card c2 reveal d2">
-        <div class="bg"></div><div class="scrim"></div>
-        <div class="label">
-          <div class="t">Automatic<br />Flush</div>
-          <div class="d">Tornado vortex rinse cleans the bowl in a single, efficient sweep.</div>
+
+      <div class="feat-card fu d1">
+        <div class="feat-icon">
+          <svg viewBox="0 0 24 24"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M6.34 17.66l-2.83 2.83M19.07 4.93l-2.83 2.83"/></svg>
         </div>
+        <h3>Heated Seat</h3>
+        <p>Ceramic heating elements maintain the seat between 32 °C and 40 °C, with four precision steps and instant-ready activation on approach.</p>
       </div>
-      <div class="feat-card c3 reveal d3">
-        <div class="bg"></div><div class="scrim"></div>
-        <div class="label">
-          <div class="t">Heated<br />Seat</div>
-          <div class="d">Five temperature presets. Always warm, never hot.</div>
+
+      <div class="feat-card fu d2">
+        <div class="feat-icon">
+          <svg viewBox="0 0 24 24"><path d="M12 2C6 10 4 13 4 16a8 8 0 0 0 16 0c0-3-2-6-8-14z"/><path d="M12 16v2"/></svg>
         </div>
+        <h3>Vortex Flush</h3>
+        <p>Dual-inlet swirl nozzles generate a 360° vortex that cleans the bowl completely using 18 % less water than conventional flush systems.</p>
       </div>
-      <div class="feat-card c4 reveal d4">
-        <div class="bg"></div><div class="scrim"></div>
-        <div class="label">
-          <div class="t">Foot‑feel<br />Flush</div>
-          <div class="d">Tap a sensor beneath the base — no buttons, no contact.</div>
+
+      <div class="feat-card fu d3">
+        <div class="feat-icon">
+          <svg viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="14" rx="2"/><path d="M8 20h8M12 18v2"/></svg>
         </div>
+        <h3>HD LCD Panel</h3>
+        <p>A 6.8 cm colour display shows water temperature, seat warmth and mode settings at a glance — everything readable without bending down.</p>
       </div>
+
     </div>
   </div>
 </section>
 
-<!-- ============================ DISPLAY SECTION ============================ -->
-<section class="panel dark display-section" id="display">
-  <div class="container">
-    <div class="reveal"><span class="eyebrow">HD LCD · Real‑time</span></div>
-    <h2 class="display reveal d2" style="margin-top:18px; max-width: 18ch;">A display that <em>listens, then tells.</em></h2>
-    <p class="body-l reveal d3" style="margin-top: 24px; max-width: 56ch;">
-      A high-contrast LCD reads water and seat temperature at a glance. Cleansing pressure, deodoriser status and self-clean cycles are surfaced only when relevant — never in the way.
-    </p>
-
-    <div class="display-shot reveal d4"></div>
-
-    <div class="chips">
-      <div class="chip reveal"><div class="k">40<span>°C</span></div><div class="v">Water temperature</div></div>
-      <div class="chip reveal d2"><div class="k">40<span>°C</span></div><div class="v">Seat temperature</div></div>
-      <div class="chip reveal d3"><div class="k">5<span>steps</span></div><div class="v">Pressure presets</div></div>
-    </div>
+<!-- ══ DISPLAY SPLIT ════════════════════════════════════════════ -->
+<section class="split" id="display">
+  <div class="split-img fu">
+    <img src="assets/display.png" alt="Orvique HD LCD display"/>
+  </div>
+  <div class="split-body fu d2">
+    <p class="sec-eyebrow">Intelligence, visible</p>
+    <h2>HD LCD Control <em>Panel</em></h2>
+    <p>Mounted flush to the ceramic body, the display renders settings in sharp colour. Adjust wash temperature, seat warmth and cleansing mode without reaching for the remote.</p>
+    <ul class="split-list">
+      <li>6.8 cm, 1280 × 720 colour LCD</li>
+      <li>Auto-brightness adapts to ambient light</li>
+      <li>Multilingual interface</li>
+      <li>Full wireless handset included</li>
+    </ul>
   </div>
 </section>
 
-<!-- ============================ FEATURE SPLIT 2 — UV / Hygiene ============================ -->
-<section class="panel dark">
-  <div class="container">
-    <div class="split reverse">
-      <div class="reveal">
-        <span class="eyebrow">Automatic Flush</span>
-        <h3 style="margin-top:18px;">A tornado, <em>tuned to silence.</em></h3>
-        <p class="body-l">A pressure-driven vortex draws air and water in a single helix — cleaner with less water, quieter than a household conversation.</p>
-        <ul class="feat-list">
-          <li><span class="dot"></span>1.0 / 0.8 GPF dual flush</li>
-          <li><span class="dot"></span>Auto-sense flush on departure</li>
-          <li><span class="dot"></span>Self-cleaning rim, no hidden channels</li>
-        </ul>
-      </div>
-      <div class="imgwrap reveal d2" style="aspect-ratio:4/5;">
-        <img src="assets/lifestyle.png" alt="Lifestyle bathroom scene" style="object-position: 50% 70%;" />
-      </div>
-    </div>
+<!-- ══ VORTEX SPLIT (reversed) ══════════════════════════════════ -->
+<section class="split rev" id="flush">
+  <div class="split-img fu">
+    <img src="assets/features-grid.png" alt="Orvique vortex flush system"/>
+  </div>
+  <div class="split-body fu d2">
+    <p class="sec-eyebrow">Vortex Flush</p>
+    <h2>360° rinse, <em>every time.</em></h2>
+    <p>Twin inlets at opposite sides of the rim produce a powerful swirl that reaches every surface. No brush required — the bowl self-cleans with each flush.</p>
+    <ul class="split-list">
+      <li>18 % less water than standard flush</li>
+      <li>Full 360° bowl coverage</li>
+      <li>Stain-resistant nano glaze</li>
+      <li>Fully rimless inner bowl</li>
+    </ul>
   </div>
 </section>
 
-<!-- ============================ LIFESTYLE PARALLAX ============================ -->
+<!-- ══ LIFESTYLE ════════════════════════════════════════════════ -->
 <section class="lifestyle" id="lifestyle">
-  <div class="bg" id="lifestyleBg"></div>
-  <div class="scrim"></div>
-  <div class="copy">
-    <div class="reveal">
-      <span class="eyebrow" style="color:#dadada">Made for the modern home</span>
-      <h3 style="margin-top:14px;">Quiet luxury, <br/>at the threshold of the everyday.</h3>
-      <p>Designed to disappear into the architecture — and to be exactly there when you need it.</p>
+  <div class="ls-bg" id="lsBg" style="background-image:url('assets/lifestyle.png')"></div>
+  <div class="ls-vignette"></div>
+  <div class="ls-copy fu">
+    <h2>The bathroom, <em>reimagined.</em></h2>
+  </div>
+</section>
+
+<!-- ══ SPECS ════════════════════════════════════════════════════ -->
+<section class="specs" id="specs">
+  <div class="wrap">
+    <p class="sec-eyebrow fu">Specifications</p>
+    <h2 class="sec-h2 fu d1">Series One, <em>in full detail.</em></h2>
+    <div class="spec-grid">
+      <div>
+        <div class="spec-row fu"><span>Dimensions</span><span>700 × 415 × 490 mm</span></div>
+        <div class="spec-row fu d1"><span>Weight</span><span>28 kg</span></div>
+        <div class="spec-row fu d2"><span>Water supply</span><span>Cold-water inlet, ≥ 0.1 MPa</span></div>
+        <div class="spec-row fu d3"><span>Flush volume</span><span>4.5 / 3 L (full / half)</span></div>
+        <div class="spec-row fu"><span>Seat heating</span><span>32 – 40 °C, 4-step</span></div>
+        <div class="spec-row fu d1"><span>Wash modes</span><span>Posterior · Feminine · Bidet · Oscillation · Pulsation</span></div>
+        <div class="spec-row fu d2"><span>Water temperature</span><span>30 – 40 °C, 4-step</span></div>
+      </div>
+      <div>
+        <div class="spec-row fu"><span>Water pressure</span><span>0.8 – 1.6 bar, 5-step</span></div>
+        <div class="spec-row fu d1"><span>Drying</span><span>Warm-air, 40 – 60 °C</span></div>
+        <div class="spec-row fu d2"><span>Auto open / close</span><span>Proximity sensor, 0 – 120 cm</span></div>
+        <div class="spec-row fu d3"><span>Display</span><span>6.8 cm HD LCD, 1280 × 720</span></div>
+        <div class="spec-row fu"><span>Power</span><span>220 – 240 V AC · 50 Hz · 1350 W</span></div>
+        <div class="spec-row fu d1"><span>Noise level</span><span>≤ 48 dB(A)</span></div>
+        <div class="spec-row fu d2"><span>Certification</span><span>CE · RoHS · WELS 4-star</span></div>
+      </div>
     </div>
   </div>
 </section>
 
-<!-- ============================ SPECS ============================ -->
-<section class="panel light" id="specs">
-  <div class="container">
-    <div class="reveal"><span class="eyebrow" style="color:var(--ink-dark-dim)">Technical</span></div>
-    <h2 class="display reveal d2" style="margin-top: 18px; color: var(--ink-dark); max-width: 16ch;">Specifications, <em style="color: var(--gold)">in full.</em></h2>
-
-    <div class="specs-grid reveal d3">
-      <div class="spec"><div class="k">Dimensions</div><div class="v">700 × 405 × 525&nbsp;mm</div></div>
-      <div class="spec"><div class="k">Material</div><div class="v">Vitreous ceramic, glazed</div></div>
-      <div class="spec"><div class="k">Flush type</div><div class="v">Pressurised vortex, dual 1.0 / 0.8&nbsp;GPF</div></div>
-      <div class="spec"><div class="k">Water inlet</div><div class="v">G ½″, 0.07–0.75&nbsp;MPa</div></div>
-      <div class="spec"><div class="k">Seat temperature</div><div class="v">Five presets, ambient → 40&nbsp;°C</div></div>
-      <div class="spec"><div class="k">Water temperature</div><div class="v">Instant heating, 35–40&nbsp;°C</div></div>
-      <div class="spec"><div class="k">Display</div><div class="v">HD LCD, ambient-aware</div></div>
-      <div class="spec"><div class="k">Controls</div><div class="v">Side panel · Remote · Foot sensor</div></div>
-      <div class="spec"><div class="k">Power</div><div class="v">220 V / 50 Hz · 1600 W peak</div></div>
-      <div class="spec"><div class="k">Acoustic</div><div class="v">≤ 48&nbsp;dB flushing cycle</div></div>
-    </div>
-  </div>
-</section>
-
-<!-- ============================ CONTACT ============================ -->
+<!-- ══ CONTACT ══════════════════════════════════════════════════ -->
 <section class="contact" id="contact">
-  <div class="reveal"><span class="eyebrow">Speak with us</span></div>
-  <h2 class="display reveal d2"><em>Begin</em> the conversation.</h2>
-  <p class="body-l reveal d3">
-    Showroom visits, product enquiries, dealer access and white‑glove installation — our concierge team replies within one business day.
-  </p>
-
-  <div class="cta-row reveal d4">
-    <a class="cta primary" href="mailto:hello@orvique.com?subject=Orvique%20Series%20One%20enquiry">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16v12H4z"/><path d="m4 7 8 6 8-6"/></svg>
+  <span class="sec-eyebrow fu">Get in Touch</span>
+  <h2 class="fu d1">Ready for <em>Orvique?</em></h2>
+  <p class="fu d2">Our team is available to answer your questions, arrange a showroom visit, or schedule installation.</p>
+  <div class="contact-btns fu d3">
+    <a href="mailto:hello@orvique.com" class="c-btn gold">
+      <svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,12 2,6"/></svg>
       hello@orvique.com
     </a>
-    <a class="cta whatsapp" href="https://wa.me/919876543210?text=Hi%20Orvique%2C%20I%27d%20like%20to%20enquire%20about%20the%20Series%20One." target="_blank" rel="noopener">
-      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.5 3.5A11 11 0 0 0 3.6 17.3L2 22l4.8-1.6A11 11 0 1 0 20.5 3.5Zm-8.5 17a8.9 8.9 0 0 1-4.6-1.3l-.3-.2-2.9 1 1-2.8-.2-.3a9 9 0 1 1 7 3.6Zm5.1-6.7c-.3-.1-1.7-.8-1.9-.9-.2-.1-.4-.1-.6.1-.2.3-.7.9-.9 1-.2.2-.3.2-.6 0-.3-.1-1.2-.4-2.2-1.4-.8-.7-1.4-1.6-1.5-1.9-.2-.3 0-.4.1-.6l.4-.5c.1-.2.2-.3.3-.5s0-.4 0-.5c0-.1-.6-1.5-.9-2-.2-.5-.5-.4-.6-.4h-.5c-.2 0-.5.1-.7.3-.3.3-1 .9-1 2.3s1 2.7 1.1 2.9c.2.2 2 3 4.8 4.2.7.3 1.2.5 1.6.6.7.2 1.3.2 1.8.1.5-.1 1.7-.7 1.9-1.4.3-.7.3-1.2.2-1.3-.1-.2-.3-.2-.6-.4Z"/></svg>
-      WhatsApp us
-    </a>
-    <a class="cta ghost" href="#hero">
-      Back to top
-    </a>
-  </div>
-
-  <div class="contact-strip">
-    <a class="contact-card" href="mailto:hello@orvique.com">
-      <div class="ttl">Email</div>
-      <div class="val">hello@orvique.com</div>
-    </a>
-    <a class="contact-card" href="https://wa.me/919876543210" target="_blank" rel="noopener">
-      <div class="ttl">WhatsApp</div>
-      <div class="val">+91 98765 43210</div>
+    <a href="https://wa.me/919876543210" target="_blank" rel="noopener" class="c-btn outline">
+      <svg viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+      WhatsApp
     </a>
   </div>
 </section>
 
-<!-- ============================ FOOTER ============================ -->
+<!-- ══ FOOTER ════════════════════════════════════════════════════ -->
 <footer>
-  <div class="row">
-    <div class="brand-mini">
-      <div class="mark"></div>
-      <span>ORVIQUE</span>
-    </div>
-    <div>© 2026 Orvique. Intelligent Comfort.™ &nbsp;·&nbsp; All rights reserved.</div>
-    <ul>
-      <li><a href="#contact">Support</a></li>
-      <li><a href="#specs">Specs</a></li>
-      <li><a href="#contact">Press</a></li>
-    </ul>
+  <span class="foot-brand">© 2026 Orvique</span>
+  <div class="foot-links">
+    <a href="#design">Design</a>
+    <a href="#features">Features</a>
+    <a href="#specs">Specs</a>
+    <a href="#contact">Contact</a>
   </div>
 </footer>
 
+<!-- ══ LIGHTBOX ══════════════════════════════════════════════════ -->
+<div class="lb" id="lb">
+  <button class="lb-x" id="lbClose"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+  <video src="assets/film.mp4" controls playsinline preload="metadata" id="lbVid"></video>
+</div>
+
 <script>
-  // ----------- Scroll-driven hero: vertical image reveal (Apple-style) -----------
-  const hero      = document.getElementById('hero');
-  const imgClosed = document.getElementById('imgClosed');
-  const imgOpen   = document.getElementById('imgOpen');
-  const heroCopy    = document.getElementById('heroCopy');
-  const heroLead    = document.getElementById('heroLead');
-  const heroGlow    = document.getElementById('heroGlow');
-  const scrollHint  = document.querySelector('.scroll-hint');
-  const topNav      = document.getElementById('topNav');
-  const lifestyleBg = document.getElementById('lifestyleBg');
+const nav    = document.getElementById('nav');
+const hero   = document.getElementById('hero');
+const rWrap  = document.querySelector('.reveal-wrap');
+const rClosed = document.getElementById('rClosed');
+const rOpen   = document.getElementById('rOpen');
+const rHead   = document.getElementById('rHeadline');
+const rSub    = document.getElementById('rSub');
+const lsBg    = document.getElementById('lsBg');
+const specs   = document.getElementById('specs');
 
-  function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
-  function lerp(a, b, t)  { return a + (b - a) * t; }
-  function easeOut(t)     { return 1 - Math.pow(1 - t, 3); }
+function clamp(v,a,b) { return Math.max(a,Math.min(b,v)); }
+function easeOut(t)   { return 1 - Math.pow(1-t,3); }
 
-  let ticking = false;
-  function onScroll() {
-    if (!ticking) { requestAnimationFrame(update); ticking = true; }
+// ── Hero entrance ────────────────────────────────────────────────
+requestAnimationFrame(() => setTimeout(() => hero.classList.add('loaded'), 80));
+
+// ── Scroll handler ───────────────────────────────────────────────
+let ticking = false;
+function onScroll() { if (!ticking) { requestAnimationFrame(tick); ticking = true; } }
+window.addEventListener('scroll', onScroll, { passive:true });
+
+function tick() {
+  ticking = false;
+  const sy = window.scrollY;
+
+  // Nav
+  nav.classList.toggle('on', sy > 60);
+  nav.classList.toggle('frosted', sy > 60);
+  if (specs) {
+    const sr = specs.getBoundingClientRect();
+    nav.classList.toggle('light-mode', sr.top < 56 && sr.bottom > 0);
   }
 
-  function update() {
-    ticking = false;
-    const rect     = hero.getBoundingClientRect();
-    const total    = hero.offsetHeight - window.innerHeight; // 320vh - 100vh = 220vh
-    const progress = clamp(-rect.top / total, 0, 1);
-
-    // ── IMAGE REVEAL: crossfade + zoom (0.04 → 0.56) ──
-    // Crossfade keeps both images at full coverage at all times — no black voids possible.
-    const lidT    = clamp((progress - 0.04) / 0.52, 0, 1);
-    const lidEased = easeOut(lidT);
-
-    // Closed: fades out + drifts up very slightly for depth
-    imgClosed.style.opacity   = String(1 - lidEased);
-    imgClosed.style.transform = `translateY(${-lidEased * 4}%)`;
-
-    // Open: fades in + zooms from 1.12 → 1.0 (premium reveal)
-    imgOpen.style.opacity   = String(lidEased);
-    imgOpen.style.transform = `scale(${lerp(1.12, 1.0, lidEased)})`;
-
-    // Bowl glow intensifies as open image becomes visible
-    heroGlow.style.opacity = String(clamp(lidEased * 0.88, 0, 0.88));
-    heroGlow.style.top     = `${lerp(72, 62, lidEased)}%`;
-
-    // ── HEADLINE: fades up and out (0.04 → 0.36) ──
-    const copyT = clamp((progress - 0.04) / 0.32, 0, 1);
-    heroCopy.style.opacity   = String(1 - easeOut(copyT));
-    heroCopy.style.transform = `translateY(${-easeOut(copyT) * 28}px)`;
-
-    // ── SCROLL HINT: fades on first scroll ──
-    if (scrollHint) scrollHint.style.opacity = String(clamp(1 - progress / 0.05, 0, 1));
-
-    // ── LEAD TEXT: rises in over open toilet (0.62 → 0.90) ──
-    const leadT    = clamp((progress - 0.62) / 0.28, 0, 1);
-    const leadEased = easeOut(leadT);
-    heroLead.style.opacity   = String(leadEased);
-    heroLead.style.transform = `translateY(${(1 - leadEased) * 40}px)`;
-
-    // ── NAV: hidden on load, slides in after first scroll ──
-    topNav.classList.toggle('revealed', window.scrollY > 80);
-    const specs = document.getElementById('specs');
-    if (specs) {
-      const sr = specs.getBoundingClientRect();
-      topNav.classList.toggle('light', sr.top < 48 && sr.bottom > 48);
-    }
-
-    // ── LIFESTYLE PARALLAX ──
-    if (lifestyleBg) {
-      const ls  = lifestyleBg.parentElement.getBoundingClientRect();
-      const lsP = clamp((window.innerHeight - ls.top) / (window.innerHeight + ls.height), 0, 1);
-      lifestyleBg.style.transform = `translateY(${(lsP - 0.5) * -80}px) scale(1.08)`;
+  // Reveal section crossfade (both images full-viewport so no black patch)
+  if (rWrap) {
+    const rect  = rWrap.getBoundingClientRect();
+    const total = rWrap.offsetHeight - window.innerHeight;
+    const p     = clamp(-rect.top / total, 0, 1);
+    // Crossfade window: 20% → 65% of scroll track
+    const t = clamp((p - 0.20) / 0.45, 0, 1);
+    const e = easeOut(t);
+    rClosed.style.opacity = String(1 - e);
+    rOpen.style.opacity   = String(e);
+    // Headline swap and sub-text reveal
+    if (t > 0.65) {
+      rHead.innerHTML = 'It opens, the moment <em>you arrive.</em>';
+      rSub.classList.add('show');
+    } else {
+      rHead.innerHTML = 'It waits, then <em>welcomes you.</em>';
+      rSub.classList.remove('show');
     }
   }
 
-  window.addEventListener('scroll', onScroll, { passive: true });
-  window.addEventListener('resize', onScroll);
-  update();
+  // Lifestyle parallax
+  if (lsBg) {
+    const r = lsBg.parentElement.getBoundingClientRect();
+    const p = clamp((window.innerHeight - r.top) / (window.innerHeight + r.height), 0, 1);
+    lsBg.style.transform = `translateY(${(p - 0.5) * -60}px)`;
+  }
 
-  // Smooth scroll for anchor links (replaces html scroll-behavior:smooth which breaks JS animation)
-  document.querySelectorAll('a[href^="#"]').forEach(a => {
-    a.addEventListener('click', e => {
-      const target = document.querySelector(a.getAttribute('href'));
-      if (target) { e.preventDefault(); target.scrollIntoView({ behavior: 'smooth' }); }
-    });
+  // Hide scroll hint after first real scroll
+  const hint = document.querySelector('.scroll-hint');
+  if (hint) hint.style.opacity = sy > 40 ? '0' : '';
+}
+tick();
+
+// ── IntersectionObserver: fade-up reveals ────────────────────────
+const io = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
+}, { threshold: 0.12 });
+document.querySelectorAll('.fu').forEach(el => io.observe(el));
+
+// ── Smooth anchor scroll ─────────────────────────────────────────
+document.querySelectorAll('a[href^="#"]').forEach(a => {
+  a.addEventListener('click', e => {
+    const t = document.querySelector(a.getAttribute('href'));
+    if (t) { e.preventDefault(); t.scrollIntoView({ behavior:'smooth' }); }
   });
+});
 
-  // ----------- Video lightbox -----------
-  const lb       = document.getElementById('videoLightbox');
-  const lbOpen   = document.getElementById('openVideo');
-  const lbClose  = document.getElementById('closeVideo');
-  function openLB()  { lb.classList.add('on'); lb.setAttribute('aria-hidden', 'false'); document.body.style.overflow = 'hidden'; }
-  function closeLB() {
-    lb.classList.remove('on'); lb.setAttribute('aria-hidden', 'true'); document.body.style.overflow = '';
-    const v = lb.querySelector('video'); if (v) { v.pause(); v.currentTime = 0; }
-  }
-  lbOpen.addEventListener('click', openLB);
-  lbClose.addEventListener('click', closeLB);
-  lb.addEventListener('click', (e) => { if (e.target === lb) closeLB(); });
-  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeLB(); });
-
-  // ----------- Reveal on intersection -----------
-  const io = new IntersectionObserver((entries) => {
-    entries.forEach(e => {
-      if (e.isIntersecting) {
-        e.target.classList.add('in');
-        io.unobserve(e.target);
-      }
-    });
-  }, { threshold: 0.15, rootMargin: '0px 0px -8% 0px' });
-  document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+// ── Video lightbox ───────────────────────────────────────────────
+const lb    = document.getElementById('lb');
+const lbVid = document.getElementById('lbVid');
+const lbX   = document.getElementById('lbClose');
+function openLb()  { lb.classList.add('open'); document.body.style.overflow='hidden'; lbVid.play(); }
+function closeLb() { lb.classList.remove('open'); document.body.style.overflow=''; lbVid.pause(); lbVid.currentTime=0; }
+document.getElementById('watchBtn').addEventListener('click', openLb);
+lbX.addEventListener('click', closeLb);
+lb.addEventListener('click', e => { if (e.target===lb) closeLb(); });
+document.addEventListener('keydown', e => { if (e.key==='Escape') closeLb(); });
 </script>
 </body>
 </html>
