@@ -89,7 +89,7 @@
   /* ---------- HERO with sticky scroll-driven lid open ---------- */
   .hero {
     position: relative;
-    height: 220vh; /* scrub track */
+    height: 320vh; /* extended scroll track — Apple-style cinematic pacing */
     background: #000;
   }
   .hero .stick {
@@ -131,8 +131,8 @@
     object-position: center center;
     will-change: opacity, transform;
   }
-  .hero .stage .img-closed { opacity: 1; }
-  .hero .stage .img-open { opacity: 0; }
+  .hero .stage .img-closed { opacity: 1; transform-origin: 50% 28%; }
+  .hero .stage .img-open   { opacity: 0; }
   .hero .floor-shadow {
     position: absolute; bottom: -10px; left: 50%;
     width: 80%; height: 36px;
@@ -866,51 +866,63 @@
   }
   function update() {
     ticking = false;
-    const rect = hero.getBoundingClientRect();
-    const total = hero.offsetHeight - window.innerHeight;
+    const rect  = hero.getBoundingClientRect();
+    const total = hero.offsetHeight - window.innerHeight; // 320vh - 100vh = 220vh scroll track
     const progress = clamp(-rect.top / total, 0, 1);
 
-    // Phase A: open the lid (0.02 - 0.57, slight dead-zone so first scroll pixel doesn't trigger)
-    const lidT = easeInOut(clamp((progress - 0.02) / 0.55, 0, 1));
-    imgOpen.style.opacity   = lidT;
-    imgClosed.style.opacity = 1 - lidT;
+    // ── Phase 1 (0 → 0.08): Hold — build anticipation, subtle zoom-in ──
+    // ── Phase 2 (0.08 → 0.60): Lid physically lifts and opens ──
+    const lidT = easeInOut(clamp((progress - 0.08) / 0.52, 0, 1));
 
-    // Subtle zoom + lift on the stage (preserve centering translate)
-    const scale = lerp(1, 1.08, progress);
-    const ty    = lerp(0, -3, progress);
-    stage.style.transform = `translate(-50%, calc(-50% + ${ty}vh)) scale(${scale})`;
+    // Closed toilet: lid lifts up (translateY) + scales slightly toward viewer + fades
+    imgClosed.style.opacity   = 1 - lidT;
+    imgClosed.style.transform = `translateY(${-lidT * 9}vh) scale(${1 + lidT * 0.06})`;
 
-    // Bowl glow rises with lid
-    heroGlow.style.opacity = lidT * 0.9;
+    // Open toilet: fades in as bowl is revealed
+    imgOpen.style.opacity = lidT;
 
-    // Headline fades out gently
-    const copyT = clamp((progress - 0.05) / 0.35, 0, 1);
-    heroCopy.style.opacity = 1 - copyT;
-    heroCopy.style.transform = `translateY(${-copyT * 24}px)`;
+    // Stage: slow cinematic zoom + drift — continues through full scroll
+    const scale = lerp(1, 1.16, progress);
+    const ty    = lerp(0, -5, progress);
+    stage.style.transform  = `translate(-50%, calc(-50% + ${ty}vh)) scale(${scale})`;
+    stage.style.opacity    = '1'; // reset in case exit phase overrides
 
-    // Lead text appears as lid opens (0.45 - 0.8)
-    const leadT = easeInOut(clamp((progress - 0.45) / 0.35, 0, 1));
-    heroLead.style.opacity = leadT;
-    heroLead.style.transform = `translateY(${(1-leadT) * 40}px)`;
+    // Bowl glow rises with lid, peaks at full open
+    heroGlow.style.opacity = lidT * 0.92;
 
-    // Reveal nav after the user starts scrolling
-    const y = window.scrollY;
-    topNav.classList.toggle('revealed', y > 80);
+    // ── Phase 3 (0.08 → 0.44): Headline fades up and out ──
+    const copyT = easeInOut(clamp((progress - 0.08) / 0.36, 0, 1));
+    heroCopy.style.opacity   = 1 - copyT;
+    heroCopy.style.transform = `translateY(${-copyT * 26}px)`;
 
-    // Nav theme: stays dark for hero; flips light over the white specs panel
+    // ── Phase 4 (0.55 → 0.78): Lead copy rises in ──
+    const leadT = easeInOut(clamp((progress - 0.55) / 0.23, 0, 1));
+    heroLead.style.opacity   = leadT;
+    heroLead.style.transform = `translateY(${(1 - leadT) * 40}px)`;
+
+    // ── Phase 5 (0.82 → 1.0): Exit — stage dims, lead fades, clean handoff to next section ──
+    const exitT = easeInOut(clamp((progress - 0.82) / 0.18, 0, 1));
+    if (exitT > 0) {
+      stage.style.opacity    = String(lerp(1, 0.12, exitT));
+      heroGlow.style.opacity = String(lidT * 0.92 * (1 - exitT));
+      heroLead.style.opacity = String(leadT * (1 - exitT));
+    }
+
+    // Nav reveal
+    topNav.classList.toggle('revealed', window.scrollY > 80);
+
+    // Nav theme: light over specs panel
     const specs = document.getElementById('specs');
     if (specs) {
       const sr = specs.getBoundingClientRect();
-      const navHeight = 48;
-      const overLight = sr.top < navHeight && sr.bottom > navHeight;
-      topNav.classList.toggle('light', overLight);
+      topNav.classList.toggle('light', sr.top < 48 && sr.bottom > 48);
     }
 
-    // Parallax for lifestyle
+    // Lifestyle parallax
     if (lifestyleBg) {
       const ls = lifestyleBg.parentElement.getBoundingClientRect();
-      const lsProgress = clamp((window.innerHeight - ls.top) / (window.innerHeight + ls.height), 0, 1);
-      lifestyleBg.style.transform = `translateY(${(lsProgress - 0.5) * -80}px) scale(1.08)`;
+      const lsP = clamp((window.innerHeight - ls.top) / (window.innerHeight + ls.height), 0, 1);
+      lifestyleBg.style.transform = `translateY(${(lsP - 0.5) * -80}px) scale(1.08)`;
     }
   }
 
