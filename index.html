@@ -114,25 +114,16 @@
     z-index: 3;
     pointer-events: none;
   }
-  /* Full-viewport product images */
+  /* Full-viewport product images — stacked, JS drives opacity crossfade + scale */
   .hero-img {
     position: absolute; inset: 0;
     width: 100%; height: 100%;
     object-fit: cover;
-    object-position: center 55%;
-    will-change: transform;
-    z-index: 2;
+    object-position: center 45%;
+    will-change: transform, opacity;
   }
-  /* Wrapper carries the clip-path so the cut is always a clean horizontal line,
-     even when the inner image is scaled or rotated */
-  .hero-img-open-wrap {
-    position: absolute; inset: 0;
-    z-index: 1;
-    clip-path: inset(100% 0 0 0); /* fully hidden until JS starts revealing */
-  }
-  .hero-img-open {
-    transform-origin: center 60%;
-  }
+  .hero-img-closed { z-index: 2; }
+  .hero-img-open   { z-index: 1; opacity: 0; transform-origin: center 55%; }
   .hero .copy {
     position: absolute;
     top: 11vh; left: 0; right: 0;
@@ -591,9 +582,7 @@
 <header class="hero" id="hero">
   <div class="stick">
     <img class="hero-img hero-img-closed" id="imgClosed" src="assets/toilet-closed.png" alt="Orvique smart toilet, lid closed" />
-    <div class="hero-img-open-wrap" id="imgOpenWrap">
-      <img class="hero-img hero-img-open" id="imgOpen" src="assets/toilet-open.png" alt="Orvique smart toilet, lid open with ambient light" />
-    </div>
+    <img class="hero-img hero-img-open"   id="imgOpen"   src="assets/toilet-open.png"   alt="Orvique smart toilet, lid open with ambient light" />
     <div class="vignette"></div>
     <div class="glow" id="heroGlow"></div>
     <div class="copy">
@@ -834,10 +823,9 @@
 
 <script>
   // ----------- Scroll-driven hero: vertical image reveal (Apple-style) -----------
-  const hero        = document.getElementById('hero');
-  const imgClosed   = document.getElementById('imgClosed');
-  const imgOpenWrap = document.getElementById('imgOpenWrap');
-  const imgOpen     = document.getElementById('imgOpen');
+  const hero      = document.getElementById('hero');
+  const imgClosed = document.getElementById('imgClosed');
+  const imgOpen   = document.getElementById('imgOpen');
   const heroCopy    = document.getElementById('heroCopy');
   const heroLead    = document.getElementById('heroLead');
   const heroGlow    = document.getElementById('heroGlow');
@@ -860,24 +848,22 @@
     const total    = hero.offsetHeight - window.innerHeight; // 320vh - 100vh = 220vh
     const progress = clamp(-rect.top / total, 0, 1);
 
-    // ── IMAGE REVEAL: linear 1:1 with scroll — 160vh total track ──
-    // Wipe window: 0.04 → 0.64 (60% of track = 96vh)
-    const lidT = clamp((progress - 0.04) / 0.60, 0, 1);
+    // ── IMAGE REVEAL: crossfade + zoom (0.04 → 0.64) ──
+    // Crossfade keeps both images at full coverage at all times — no black voids possible.
+    const lidT    = clamp((progress - 0.04) / 0.60, 0, 1);
     const lidEased = easeOut(lidT);
 
-    // Closed: slides up (pure linear translateY — no scale, so it never shrinks below viewport)
-    imgClosed.style.transform = `translateY(${-lidT * 100}%)`;
+    // Closed: fades out + drifts up very slightly for depth
+    imgClosed.style.opacity   = String(1 - lidEased);
+    imgClosed.style.transform = `translateY(${-lidEased * 4}%)`;
 
-    // Open: wrapper carries a clean horizontal clip-path; inner image gets scale + rotate
-    // Wrapper clip keeps the reveal edge perfectly horizontal regardless of rotation below
-    imgOpenWrap.style.clipPath = `inset(${(1 - lidT) * 100}% 0 0 0)`;
-    const openScale  = lerp(1.12, 1.0, lidEased);
-    const openRotate = lerp(-3, 0, lidEased);
-    imgOpen.style.transform = `scale(${openScale}) rotate(${openRotate}deg)`;
+    // Open: fades in + zooms from 1.12 → 1.0 (premium reveal)
+    imgOpen.style.opacity   = String(lidEased);
+    imgOpen.style.transform = `scale(${lerp(1.12, 1.0, lidEased)})`;
 
-    // Bowl glow tracks the open image rising
-    heroGlow.style.opacity = String(clamp(lidT * 1.1, 0, 0.88));
-    heroGlow.style.top     = `${lerp(76, 64, lidT)}%`;
+    // Bowl glow intensifies as open image becomes visible
+    heroGlow.style.opacity = String(clamp(lidEased * 0.88, 0, 0.88));
+    heroGlow.style.top     = `${lerp(72, 62, lidEased)}%`;
 
     // ── HEADLINE: fades up and out (0.04 → 0.36) ──
     const copyT = clamp((progress - 0.04) / 0.32, 0, 1);
