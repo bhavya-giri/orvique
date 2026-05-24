@@ -89,7 +89,7 @@
   /* ---------- HERO with sticky scroll-driven lid open ---------- */
   .hero {
     position: relative;
-    height: 260vh; /* 160vh scroll track — enough for the wipe + lead text, no dead zone */
+    height: 200vh; /* 100vh scroll track — animation finishes at 84%, ~16vh dead zone */
     background: #000;
   }
   .hero .stick {
@@ -622,7 +622,7 @@
 </div>
 
 <!-- ============================ INTRO STATS ============================ -->
-<section class="panel haze" id="design">
+<section class="panel haze" id="design" style="padding-top: 80px;">
   <div class="container">
     <div class="reveal"><span class="eyebrow">Designed in detail</span></div>
     <h2 class="display reveal d2" style="margin-top:18px; max-width: 16ch;">A bathroom companion, <em>refined to the smallest gesture.</em></h2>
@@ -848,9 +848,9 @@
     const total    = hero.offsetHeight - window.innerHeight; // 320vh - 100vh = 220vh
     const progress = clamp(-rect.top / total, 0, 1);
 
-    // ── IMAGE REVEAL: crossfade + zoom (0.04 → 0.64) ──
+    // ── IMAGE REVEAL: crossfade + zoom (0.04 → 0.56) ──
     // Crossfade keeps both images at full coverage at all times — no black voids possible.
-    const lidT    = clamp((progress - 0.04) / 0.60, 0, 1);
+    const lidT    = clamp((progress - 0.04) / 0.52, 0, 1);
     const lidEased = easeOut(lidT);
 
     // Closed: fades out + drifts up very slightly for depth
@@ -873,8 +873,8 @@
     // ── SCROLL HINT: fades on first scroll ──
     if (scrollHint) scrollHint.style.opacity = String(clamp(1 - progress / 0.05, 0, 1));
 
-    // ── LEAD TEXT: rises in over open toilet (0.64 → 0.84) ──
-    const leadT    = clamp((progress - 0.64) / 0.20, 0, 1);
+    // ── LEAD TEXT: rises in over open toilet (0.62 → 0.90) ──
+    const leadT    = clamp((progress - 0.62) / 0.28, 0, 1);
     const leadEased = easeOut(leadT);
     heroLead.style.opacity   = String(leadEased);
     heroLead.style.transform = `translateY(${(1 - leadEased) * 40}px)`;
