@@ -52,8 +52,8 @@ button { font-family:inherit; cursor:pointer; border:none; background:none; }
 .nav.light-mode { background:rgba(245,245,247,.88); border-bottom:1px solid rgba(0,0,0,.08); }
 .nav.light-mode .nav-link,.nav.light-mode .nav-brand { color:var(--dark); }
 .nav.light-mode .nav-cta { border-color:rgba(0,0,0,.25); color:var(--dark); }
-.nav-brand { display:flex; align-items:center; gap:10px; font-size:13px; letter-spacing:.2em; text-transform:uppercase; font-weight:500; }
-.nav-brand img { width:26px; height:26px; object-fit:contain; }
+.nav-brand { display:flex; align-items:center; }
+.nav-brand img { height:44px; width:auto; object-fit:contain; }
 .nav-links { display:flex; gap:28px; }
 .nav-link { font-size:13px; color:rgba(255,255,255,.72); transition:color .2s; }
 .nav-link:hover { color:#fff; }
@@ -270,8 +270,19 @@ button { font-family:inherit; cursor:pointer; border:none; background:none; }
   transition:background .3s;
 }
 .feat-card:nth-child(2n) { border-right:none; }
-.feat-card:nth-child(3),.feat-card:nth-child(4) { border-bottom:none; }
+.feat-card:nth-child(5),.feat-card:nth-child(6) { border-bottom:none; }
 .feat-card:hover { background:rgba(255,255,255,.025); }
+.feat-thumb {
+  margin: -56px -52px 36px;
+  height: 200px;
+  overflow: hidden;
+}
+.feat-thumb img {
+  width:100%; height:100%;
+  object-fit:cover; object-position:center;
+  transition:transform .6s var(--ease);
+}
+.feat-card:hover .feat-thumb img { transform:scale(1.05); }
 .feat-icon {
   width:48px; height:48px; border-radius:14px;
   background:rgba(201,169,110,.1);
@@ -300,7 +311,7 @@ button { font-family:inherit; cursor:pointer; border:none; background:none; }
 }
 .split-img img {
   width:100%; height:100%;
-  object-fit:contain; padding:8%;
+  object-fit:cover;
 }
 .split-body {
   padding:80px 72px;
@@ -324,6 +335,50 @@ button { font-family:inherit; cursor:pointer; border:none; background:none; }
   content:''; display:inline-block;
   width:5px; height:5px; border-radius:50%;
   background:var(--gold); flex-shrink:0;
+}
+
+/* ── HIGHLIGHTS (feature detail cards, light bg) ────────────────── */
+.highlights {
+  padding: 120px 24px;
+  background: var(--light);
+  color: var(--dark);
+}
+.highlights .wrap { max-width: var(--max); margin: 0 auto; }
+.highlights .sec-eyebrow { color: #86868b; margin-bottom: 18px; }
+.highlights .sec-h2 { color: var(--dark); margin-bottom: 64px; }
+.hi-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+}
+.hi-card {
+  background: #fff;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 2px 24px rgba(0,0,0,.07);
+}
+.hi-img {
+  background: #f5f5f7;
+  aspect-ratio: 4/3;
+  overflow: hidden;
+  display: flex; align-items: center; justify-content: center;
+}
+.hi-img img {
+  width: 100%; height: 100%;
+  object-fit: contain;
+  padding: 16px;
+  transition: transform .5s var(--ease);
+}
+.hi-card:hover .hi-img img { transform: scale(1.04); }
+.hi-body { padding: 22px 28px 30px; }
+.hi-body h3 {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 22px; font-weight: 400;
+  color: var(--dark); margin-bottom: 8px;
+}
+.hi-body p { font-size: 14px; color: #86868b; line-height: 1.75; }
+@media(max-width:900px) {
+  .hi-grid { grid-template-columns: 1fr; }
 }
 
 /* ── LIFESTYLE ──────────────────────────────────────────────────── */
@@ -448,8 +503,9 @@ footer {
   .nav-links { display:none; }
   .feat-grid { grid-template-columns:1fr; }
   .feat-card { border-right:none; }
-  .feat-card:nth-child(3) { border-bottom:1px solid rgba(255,255,255,.07); }
-  .feat-card:nth-child(4) { border-bottom:none; }
+  .feat-card:nth-child(5) { border-bottom:1px solid rgba(255,255,255,.07); }
+  .feat-card:nth-child(6) { border-bottom:none; }
+  .feat-thumb { margin:-56px -28px 28px; }
   .split { grid-template-columns:1fr; min-height:auto; }
   .split.rev { direction:ltr; }
   .split-img { height:360px; }
@@ -467,13 +523,12 @@ footer {
 <!-- ══ NAV ══════════════════════════════════════════════════════ -->
 <nav class="nav" id="nav">
   <div class="nav-brand">
-    <img src="assets/logo.png" alt="Orvique logo"/>
-    ORVIQUE
+    <img src="assets/logo.png" alt="Orvique"/>
   </div>
   <div class="nav-links">
     <a href="#design"   class="nav-link">Design</a>
     <a href="#features" class="nav-link">Features</a>
-    <a href="#display"  class="nav-link">Display</a>
+    <a href="#display"  class="nav-link">Smart Control</a>
     <a href="#specs"    class="nav-link">Specs</a>
     <a href="#contact"  class="nav-link">Contact</a>
   </div>
@@ -502,8 +557,8 @@ footer {
 <!-- ══ REVEAL (lid opens on scroll) ═════════════════════════════ -->
 <section class="reveal-wrap" id="design">
   <div class="reveal-pin" id="revealPin">
-    <img class="reveal-closed" id="rClosed" src="assets/toilet-closed.png" alt="Orvique, lid closed"/>
-    <img class="reveal-open"   id="rOpen"   src="assets/toilet-open.png"   alt="Orvique, lid open"/>
+    <img class="reveal-closed" id="rClosed" src="assets/feat-auto.jpg"        alt="Smart radar — toilet awaits"/>
+    <img class="reveal-open"   id="rOpen"   src="assets/product-display.jpg" alt="Orvique Series One, lid open"/>
     <div class="reveal-vignette"></div>
     <div class="reveal-text">
       <p class="reveal-label">Auto Open &amp; Close</p>
@@ -516,10 +571,10 @@ footer {
 <!-- ══ STATS ════════════════════════════════════════════════════ -->
 <section class="stats-bar">
   <div class="stats-inner">
-    <div class="stat-cell fu"><div class="stat-n">0.3<sup>s</sup></div><div class="stat-l">Wake to ready</div></div>
-    <div class="stat-cell fu d1"><div class="stat-n">40<sup>°C</sup></div><div class="stat-l">Heated seat</div></div>
-    <div class="stat-cell fu d2"><div class="stat-n">5<sup>modes</sup></div><div class="stat-l">Cleansing</div></div>
-    <div class="stat-cell fu d3"><div class="stat-n">48<sup>dB</sup></div><div class="stat-l">Whisper quiet</div></div>
+    <div class="stat-cell fu"><div class="stat-n">0.3<sup>s</sup></div><div class="stat-l">Lid open response</div></div>
+    <div class="stat-cell fu d1"><div class="stat-n">99.99<sup>%</sup></div><div class="stat-l">Antibacterial rate</div></div>
+    <div class="stat-cell fu d2"><div class="stat-n">4<sup>modes</sup></div><div class="stat-l">Wash programmes</div></div>
+    <div class="stat-cell fu d3"><div class="stat-n">IPX4</div><div class="stat-l">Waterproof rating</div></div>
   </div>
 </section>
 
@@ -531,35 +586,69 @@ footer {
     <div class="feat-grid">
 
       <div class="feat-card fu">
+        <div class="feat-thumb">
+          <img src="assets/feat-auto.jpg" alt="Smart Radar Auto Lid"/>
+        </div>
         <div class="feat-icon">
           <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M6.3 17.7A8 8 0 1 1 17.7 6.3"/><path d="M3.1 20.9A12 12 0 1 1 20.9 3.1"/></svg>
         </div>
-        <h3>Auto Open &amp; Close</h3>
-        <p>Proximity sensors detect your approach and the lid lifts silently in 0.3 s — no touch, no buttons. It closes automatically once you leave.</p>
+        <h3>Smart Radar Auto Lid</h3>
+        <p>Infrared proximity sensing detects your approach within 1.2 m. The cushioned lid lifts silently in 0.3 s — no touch required. Closes automatically once you leave.</p>
       </div>
 
       <div class="feat-card fu d1">
+        <div class="feat-thumb">
+          <img src="assets/feat-heat.jpg" alt="Heated Seat"/>
+        </div>
         <div class="feat-icon">
           <svg viewBox="0 0 24 24"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M6.34 17.66l-2.83 2.83M19.07 4.93l-2.83 2.83"/></svg>
         </div>
         <h3>Heated Seat</h3>
-        <p>Ceramic heating elements maintain the seat between 32 °C and 40 °C, with four precision steps and instant-ready activation on approach.</p>
+        <p>Multi-level ceramic heating maintains the seat at 38 °C, 40 °C, 42 °C or 45 °C — activated the moment you approach, always ready at the right temperature.</p>
       </div>
 
       <div class="feat-card fu d2">
+        <div class="feat-thumb">
+          <img src="assets/feat-heating.jpg" alt="Instant Water Heating"/>
+        </div>
         <div class="feat-icon">
           <svg viewBox="0 0 24 24"><path d="M12 2C6 10 4 13 4 16a8 8 0 0 0 16 0c0-3-2-6-8-14z"/><path d="M12 16v2"/></svg>
         </div>
-        <h3>Vortex Flush</h3>
-        <p>Dual-inlet swirl nozzles generate a 360° vortex that cleans the bowl completely using 18 % less water than conventional flush systems.</p>
+        <h3>Instant Water Heating</h3>
+        <p>Tank-free heating technology delivers warm water at precisely 30–40 °C the instant you need it — no waiting, no cold surprise, no energy wasted keeping a tank hot.</p>
       </div>
 
       <div class="feat-card fu d3">
+        <div class="feat-thumb">
+          <img src="assets/led-display.jpg" alt="LED Status Display"/>
+        </div>
         <div class="feat-icon">
           <svg viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="14" rx="2"/><path d="M8 20h8M12 18v2"/></svg>
         </div>
-        <h3>HD LCD Panel</h3>
-        <p>A 6.8 cm colour display shows water temperature, seat warmth and mode settings at a glance — everything readable without bending down.</p>
+        <h3>LED Status Display</h3>
+        <p>A bright LED panel shows real-time seat temperature, water warmth, and wash mode at a glance — paired with the soft-close lid for a complete premium experience.</p>
+      </div>
+
+      <div class="feat-card fu d2">
+        <div class="feat-thumb">
+          <img src="assets/feat-antibacterial.jpg" alt="SIAA Antibacterial Seat"/>
+        </div>
+        <div class="feat-icon">
+          <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        </div>
+        <h3>SIAA Antibacterial Seat</h3>
+        <p>Ag⁺ silver-ion technology embedded in the seat material delivers a 99.99 % antibacterial rate, certified by SIAA — stays hygienic between every use without any spray or wipe.</p>
+      </div>
+
+      <div class="feat-card fu d3">
+        <div class="feat-thumb">
+          <img src="assets/feat-waterproof.jpg" alt="IPX4 Waterproof"/>
+        </div>
+        <div class="feat-icon">
+          <svg viewBox="0 0 24 24"><path d="M12 2C6 10 4 14 4 17a8 8 0 0 0 16 0c0-3-2-7-8-15z"/></svg>
+        </div>
+        <h3>IPX4 Waterproof</h3>
+        <p>Fully splash-proof electronics and sealed components rated to IPX4 — the entire unit is safe in the humid bathroom environment, from daily splashes to full cleaning rinses.</p>
       </div>
 
     </div>
@@ -569,42 +658,93 @@ footer {
 <!-- ══ DISPLAY SPLIT ════════════════════════════════════════════ -->
 <section class="split" id="display">
   <div class="split-img fu">
-    <img src="assets/display.png" alt="Orvique HD LCD display"/>
+    <img src="assets/product-display.jpg" alt="Orvique Series One product showcase"/>
   </div>
   <div class="split-body fu d2">
-    <p class="sec-eyebrow">Intelligence, visible</p>
-    <h2>HD LCD Control <em>Panel</em></h2>
-    <p>Mounted flush to the ceramic body, the display renders settings in sharp colour. Adjust wash temperature, seat warmth and cleansing mode without reaching for the remote.</p>
+    <p class="sec-eyebrow">Smart Display &amp; Control</p>
+    <h2>The right temperature, <em>always.</em></h2>
+    <p>An illuminated display ring shows your seat and water temperature at a glance, while the wireless remote gives you precise control over every setting — wash mode, pressure, warmth — from anywhere in the room.</p>
     <ul class="split-list">
-      <li>6.8 cm, 1280 × 720 colour LCD</li>
-      <li>Auto-brightness adapts to ambient light</li>
-      <li>Multilingual interface</li>
-      <li>Full wireless handset included</li>
+      <li>Real-time seat temperature readout</li>
+      <li>Wireless remote with compact design</li>
+      <li>One-touch knob for quick adjustments</li>
+      <li>Night light for comfortable use after dark</li>
     </ul>
   </div>
 </section>
 
-<!-- ══ VORTEX SPLIT (reversed) ══════════════════════════════════ -->
+<!-- ══ WASH MODES SPLIT (reversed) ══════════════════════════════ -->
 <section class="split rev" id="flush">
   <div class="split-img fu">
-    <img src="assets/features-grid.png" alt="Orvique vortex flush system"/>
+    <img src="assets/wash-modes.jpg" alt="4 Wash Modes"/>
   </div>
   <div class="split-body fu d2">
-    <p class="sec-eyebrow">Vortex Flush</p>
-    <h2>360° rinse, <em>every time.</em></h2>
-    <p>Twin inlets at opposite sides of the rim produce a powerful swirl that reaches every surface. No brush required — the bowl self-cleans with each flush.</p>
+    <p class="sec-eyebrow">4 Wash Modes</p>
+    <h2>Personalised hygiene, <em>every time.</em></h2>
+    <p>Four precision-tuned wash modes adapt to your needs — whether a gentle rinse, full rear cleanse, oscillating massage or targeted feminine care, the right mode is one tap away.</p>
     <ul class="split-list">
-      <li>18 % less water than standard flush</li>
-      <li>Full 360° bowl coverage</li>
-      <li>Stain-resistant nano glaze</li>
-      <li>Fully rimless inner bowl</li>
+      <li>Gentle Feminine — soft, targeted spray</li>
+      <li>Rear Wash — wide-angle full-coverage rinse</li>
+      <li>Oscillating — back-and-forth massage motion</li>
+      <li>Bowel Assist — gentle pulsating stimulation</li>
     </ul>
+  </div>
+</section>
+
+<!-- ══ FEATURE HIGHLIGHTS ════════════════════════════════════════ -->
+<section class="highlights" id="highlights">
+  <div class="wrap">
+    <div class="fu"><p class="sec-eyebrow">Every Detail Considered</p></div>
+    <h2 class="sec-h2 fu d1">Thoughtful by <em>design.</em></h2>
+    <div class="hi-grid">
+
+      <div class="hi-card fu">
+        <div class="hi-img">
+          <img src="assets/feat-drying.jpg" alt="Warm Air Drying"/>
+        </div>
+        <div class="hi-body">
+          <h3>Warm Air Drying</h3>
+          <p>Multi-level warm air drying at room temp, 40 °C, 48 °C, or 55 °C — a complete dry-after-wash experience, gentle and moisture-free.</p>
+        </div>
+      </div>
+
+      <div class="hi-card fu d1">
+        <div class="hi-img">
+          <img src="assets/feat-filtration.jpg" alt="Multi-Stage Filtration"/>
+        </div>
+        <div class="hi-body">
+          <h3>Multi-Stage Filtration</h3>
+          <p>A built-in filter removes impurities, sediment, rust, and bacteria from the water before every wash — fresher, healthier cleansing every time.</p>
+        </div>
+      </div>
+
+      <div class="hi-card fu d2">
+        <div class="hi-img">
+          <img src="assets/feat-control.jpg" alt="One-Touch Knob &amp; Night Light"/>
+        </div>
+        <div class="hi-body">
+          <h3>One-Touch Knob &amp; Night Light</h3>
+          <p>A glowing knob control for instant daily-use adjustments, paired with a soft bowl night light that guides you in the dark without disturbing your sleep.</p>
+        </div>
+      </div>
+
+      <div class="hi-card fu d3">
+        <div class="hi-img">
+          <img src="assets/remote-control.png" alt="Smart Wireless Remote"/>
+        </div>
+        <div class="hi-body">
+          <h3>Smart Wireless Remote</h3>
+          <p>A compact, intuitive handset gives you full control over wash mode, seat temperature, water warmth, and drying — all at your fingertips.</p>
+        </div>
+      </div>
+
+    </div>
   </div>
 </section>
 
 <!-- ══ LIFESTYLE ════════════════════════════════════════════════ -->
 <section class="lifestyle" id="lifestyle">
-  <div class="ls-bg" id="lsBg" style="background-image:url('assets/lifestyle.png')"></div>
+  <div class="ls-bg" id="lsBg" style="background-image:url('assets/feat-heat.jpg')"></div>
   <div class="ls-vignette"></div>
   <div class="ls-copy fu">
     <h2>The bathroom, <em>reimagined.</em></h2>
@@ -628,12 +768,13 @@ footer {
       </div>
       <div>
         <div class="spec-row fu"><span>Water pressure</span><span>0.8 – 1.6 bar, 5-step</span></div>
-        <div class="spec-row fu d1"><span>Drying</span><span>Warm-air, 40 – 60 °C</span></div>
+        <div class="spec-row fu d1"><span>Drying</span><span>Warm-air, 40 / 48 / 55 °C (3-level)</span></div>
         <div class="spec-row fu d2"><span>Auto open / close</span><span>Proximity sensor, 0 – 120 cm</span></div>
         <div class="spec-row fu d3"><span>Display</span><span>6.8 cm HD LCD, 1280 × 720</span></div>
         <div class="spec-row fu"><span>Power</span><span>220 – 240 V AC · 50 Hz · 1350 W</span></div>
         <div class="spec-row fu d1"><span>Noise level</span><span>≤ 48 dB(A)</span></div>
-        <div class="spec-row fu d2"><span>Certification</span><span>CE · RoHS · WELS 4-star</span></div>
+        <div class="spec-row fu d2"><span>Waterproof</span><span>IPX4 splash-proof rated</span></div>
+        <div class="spec-row fu d3"><span>Antibacterial</span><span>SIAA Ag⁺ · 99.99 % inhibition</span></div>
       </div>
     </div>
   </div>
@@ -649,8 +790,8 @@ footer {
       <svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,12 2,6"/></svg>
       hello@orvique.com
     </a>
-    <a href="https://wa.me/919876543210" target="_blank" rel="noopener" class="c-btn outline">
-      <svg viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+    <a href="https://wa.me/919650466529" target="_blank" rel="noopener" class="c-btn outline">
+      <svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
       WhatsApp
     </a>
   </div>
